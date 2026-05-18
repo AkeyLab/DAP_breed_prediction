@@ -1,0 +1,8 @@
+# Paths
+result_folder_path: './results/mode_5'
+breed_list_text_path: './data/Toy_a_short_breed_list.txt'
+
+# Training Params
+pca_components: 0.95
+random_state: 42
+test_size: 0.4

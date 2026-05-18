@@ -1,0 +1,41 @@
+American Pitbull Terrier
+American Staffordshire Terrier
+Australian Cattle Dog
+Australian Shepherd
+Basset Hound
+Beagle
+Belgian Malinois
+Bichon Frise
+Border Collie
+Boston Terrier
+Boxer
+Bulldog
+Chesapeake Bay Retriever
+Chihuahua
+Chinese Shar-Pei
+Cocker Spaniel
+Dachshund
+Dalmatian
+English Setter
+German Shepherd Dog
+German Shorthaired Pointer
+Golden Retriever
+Great Dane
+Great Pyrenees
+Italian Greyhound
+Jack Russell Terrier
+Labrador Retriever
+Maltese
+Newfoundland
+Pembroke Welsh Corgi
+Pomeranian
+Poodle
+Poodle (Toy)
+Pug
+Rottweiler
+Shetland Sheepdog
+Siberian Husky
+Unknown
+Vizsla
+Weimaraner
+Yorkshire Terrier

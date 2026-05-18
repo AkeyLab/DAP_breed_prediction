@@ -1,0 +1,3 @@
+# Paths
+result_folder_path: './results/mode_1'
+SNP_csv_path: './data/Toy_X_snps.csv'

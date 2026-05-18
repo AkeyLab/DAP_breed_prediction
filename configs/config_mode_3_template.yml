@@ -1,0 +1,5 @@
+# Paths
+result_folder_path: './results/mode_3'
+SNP_csv_path: './data/Toy_X_snps.csv'
+breed_list_text_path: './data/Toy_a_short_breed_list.txt'
+label_path: './data/Toy_Y_labels.csv'
