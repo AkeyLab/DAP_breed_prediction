@@ -1,8 +1,6 @@
 # DAP Breed Prediction
 
-Code and data package for dog breed prediction/admixture estimation used in the DAP paper workflows.
-
-This repository is a cleaned, submission-focused conversion of `Code_to_submit` from `AkeyLab/DAP_breed_classification`.
+Code and data package for dog breed prediction/admixture estimation used in the DAP paper workflows: "***An interpretable machine learning framework for dog breed inference and ancestry decomposition***".
 
 ## Repository Layout
 
