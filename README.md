@@ -36,6 +36,12 @@ Optional editable install (enables the `dap-breed-predict` command):
 pip install -e .
 ```
 
+## Hardware And Runtime
+
+- No non-standard hardware is required; CPU-only execution is sufficient.
+- Typical install time: Typically <5 minutes on a normal desktop with internet access.
+- Expected demo runtime: Typically <1 minute for the toy dataset after dependencies are installed.
+
 ## Usage
 
 Run from repository root:
@@ -169,4 +175,3 @@ These parquet files are not bundled in this repository and must be provided sepa
 ```bash
 python main.py -train -inference -config_path configs/config_mode_4_template.yml
 ```
-
