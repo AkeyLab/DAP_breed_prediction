@@ -17,6 +17,8 @@ DAP_breed_prediction/
 │   ├── X_train_SNP_WG_prune_v3_1_std_pca_100.csv
 │   ├── X_test_SNP_WG_prune_v3_1_std_pca_100.csv
 │   └── y_combined_100.csv
+├── notebooks/
+│   └── reproduce_selected_paper_figures.ipynb
 └── src/dap_breed_prediction/
     ├── cli.py                           # Mode parsing + orchestration
     ├── pipeline.py                      # Training/inference pipeline
@@ -114,6 +116,19 @@ results/mode_6/
 ```
 
 Check `results/mode_6/process.log` for the parameters, threshold, and summary metrics from the run. To perform another independent clean run, copy `configs/config_mode_6_template.yml`, change `result_folder_path` to a new directory, and run the command with the copied config.
+
+### Executed Figure Notebook
+
+[View the executed notebook](notebooks/reproduce_selected_paper_figures.ipynb) to inspect the calculations and embedded outputs for Fig. 2b, Fig. 2c, Fig. 2e, Fig. 3b, Fig. 3c, Fig. 3d, Fig. 3e, Fig. 3f, and Fig. 3h. The notebook uses the archived 10-class model for Fig. 2c and does not retrain it. Plot outputs are retained inside the notebook; no separate figure files are created.
+
+GitHub renders the saved outputs without requiring any setup. To execute the notebook locally, install the optional figure dependencies and launch Jupyter from the repository root:
+
+```bash
+python -m pip install -e ".[figures]"
+python -m jupyter lab notebooks/reproduce_selected_paper_figures.ipynb
+```
+
+Fig. 2b and Fig. 2e use assets bundled in this repository. Re-executing the other panels also requires the external paper-analysis tables and archived 10-class assets described in the notebook. Place them under `figure_data/`, or set `DAP_FIGURE_DATA` to that directory before starting Jupyter. These larger source data are not committed to this repository; their computed plot outputs are embedded in the notebook.
 
 ## Usage
 

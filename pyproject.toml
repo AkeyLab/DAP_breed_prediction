@@ -18,6 +18,12 @@ dependencies = [
   "scikit-learn>=1.2",
 ]
 
+[project.optional-dependencies]
+figures = [
+  "jupyterlab>=4.0",
+  "seaborn>=0.13",
+]
+
 [project.scripts]
 dap-breed-predict = "dap_breed_prediction.cli:main"
 
@@ -26,4 +32,3 @@ package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
-
