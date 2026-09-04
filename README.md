@@ -129,7 +129,7 @@ python -m pip install -e ".[figures]"
 python -m jupyter lab notebooks/reproduce_selected_paper_figures.ipynb
 ```
 
-All inputs used by the notebook are bundled in `Figure_data/` or elsewhere in this repository, so a complete clone can reproduce every listed panel. No path configuration is needed when Jupyter is started from the repository root. Set `DAP_FIGURE_DATA` only to override the default `Figure_data/` location.
+The `figures` extra pins scikit-learn to the version used for the saved notebook execution. All inputs used by the notebook are bundled in `Figure_data/` or elsewhere in this repository, so a complete clone can reproduce every listed panel. No path configuration is needed when Jupyter is started from the repository root. Set `DAP_FIGURE_DATA` only to override the default `Figure_data/` location.
 
 ## Usage
 

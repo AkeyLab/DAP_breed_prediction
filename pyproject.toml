@@ -21,6 +21,7 @@ dependencies = [
 [project.optional-dependencies]
 figures = [
   "jupyterlab>=4.0",
+  "scikit-learn==1.6.1",
   "seaborn>=0.13",
 ]
 
