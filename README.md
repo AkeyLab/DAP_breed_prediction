@@ -10,6 +10,7 @@ DAP_breed_prediction/
 ├── pyproject.toml                       # Package metadata
 ├── requirements.txt                     # Dependency list
 ├── configs/                             # YAML config templates for modes 1-6
+├── Figure_data/                          # Inputs for the executed figure notebook
 ├── data/                                # Toy data + reproduction assets
 │   ├── Toy_X_snps.csv
 │   ├── Toy_Y_labels.csv
@@ -128,7 +129,7 @@ python -m pip install -e ".[figures]"
 python -m jupyter lab notebooks/reproduce_selected_paper_figures.ipynb
 ```
 
-Fig. 2b and Fig. 2e use assets bundled in this repository. Re-executing the other panels also requires the external paper-analysis tables and archived 10-class assets described in the notebook. Place them under `figure_data/`, or set `DAP_FIGURE_DATA` to that directory before starting Jupyter. These larger source data are not committed to this repository; their computed plot outputs are embedded in the notebook.
+All inputs used by the notebook are bundled in `Figure_data/` or elsewhere in this repository, so a complete clone can reproduce every listed panel. No path configuration is needed when Jupyter is started from the repository root. Set `DAP_FIGURE_DATA` only to override the default `Figure_data/` location.
 
 ## Usage
 

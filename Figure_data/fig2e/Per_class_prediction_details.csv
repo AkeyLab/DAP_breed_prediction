@@ -1,0 +1,500 @@
+Class Label,Total,Strict Correct,Strict Accuracy,Loose Correct,Loose Accuracy,Wrong Prediction
+Airedale Terrier,4,4,1.0,4,1.0,
+Airedale Terrier-Labrador Retriever,1,0,0.0,1,1.0,Airedale Terrier-Norwich Terrier:1
+Akita,2,2,1.0,2,1.0,
+Akita-American Staffordshire Terrier,1,0,0.0,1,1.0,American Pitbull Terrier-American Staffordshire Terrier:1
+Akita-German Shepherd Dog,1,1,1.0,1,1.0,
+Alaskan Malamute,5,5,1.0,5,1.0,
+Alaskan Malamute-Chihuahua,1,0,0.0,0,0.0,German Shepherd Dog-Siberian Husky:1
+Alaskan Malamute-German Shepherd Dog,3,0,0.0,3,1.0,German Shepherd Dog-Siberian Husky:3
+Alaskan Malamute-Great Dane,1,0,0.0,1,1.0,Great Dane-Siberian Husky:1
+Alaskan Malamute-Labrador Retriever,1,0,0.0,1,1.0,German Shepherd Dog-Labrador Retriever:1
+Alaskan Malamute-Siberian Husky,2,0,0.0,2,1.0,German Shepherd Dog-Siberian Husky:1;Golden Retriever-Siberian Husky:1
+American Eskimo Dog,2,0,0.0,0,0.0,Dachshund-Pomeranian:1;Pomeranian-Unknown:1
+American Eskimo Dog-Border Collie,1,0,0.0,0,0.0,German Shepherd Dog-Siberian Husky:1
+American Eskimo Dog-Chihuahua,1,0,0.0,1,1.0,Chihuahua-Pomeranian:1
+American Eskimo Dog-German Shepherd Dog,1,0,0.0,1,1.0,German Shepherd Dog-Labrador Retriever:1
+American Eskimo Dog-Pomeranian,1,1,1.0,1,1.0,
+American Eskimo Dog-Poodle,1,0,0.0,1,1.0,Poodle-Poodle (Toy):1
+American Eskimo Dog-Shih Tzu,1,0,0.0,0,0.0,Chihuahua-Unknown:1
+American Pitbull Terrier,8,0,0.0,8,1.0,American Pitbull Terrier-American Staffordshire Terrier:8
+American Pitbull Terrier-American Staffordshire Terrier,7,5,0.7142857142857143,7,1.0,American Pitbull Terrier-Labrador Retriever:1;American Pitbull Terrier-Australian Cattle Dog:1
+American Pitbull Terrier-Australian Cattle Dog,4,0,0.0,4,1.0,American Pitbull Terrier-American Staffordshire Terrier:1;Australian Cattle Dog-Labrador Retriever:3
+American Pitbull Terrier-Australian Shepherd,2,0,0.0,1,0.5,American Pitbull Terrier-American Staffordshire Terrier:1;Boxer-Siberian Husky:1
+American Pitbull Terrier-Beagle,1,0,0.0,1,1.0,American Pitbull Terrier-Unknown:1
+American Pitbull Terrier-Border Collie,1,0,0.0,1,1.0,American Pitbull Terrier-Boxer:1
+American Pitbull Terrier-Boxer,7,2,0.2857142857142857,7,1.0,American Pitbull Terrier-American Staffordshire Terrier:4;American Pitbull Terrier-Labrador Retriever:1
+American Pitbull Terrier-Bulldog,4,1,0.25,4,1.0,American Pitbull Terrier-American Staffordshire Terrier:2;Boxer-Bulldog:1
+American Pitbull Terrier-Chihuahua,2,0,0.0,2,1.0,Chihuahua-Unknown:1;American Pitbull Terrier-Jack Russell Terrier:1
+American Pitbull Terrier-Chinese Shar-Pei,1,0,0.0,1,1.0,American Pitbull Terrier-American Staffordshire Terrier:1
+American Pitbull Terrier-Dachshund,1,0,0.0,1,1.0,American Pitbull Terrier-Unknown:1
+American Pitbull Terrier-German Shepherd Dog,4,0,0.0,3,0.75,German Shepherd Dog-Labrador Retriever:2;Labrador Retriever-Unknown:1;American Pitbull Terrier-Labrador Retriever:1
+American Pitbull Terrier-German Shorthaired Pointer,1,0,0.0,1,1.0,American Pitbull Terrier-American Staffordshire Terrier:1
+American Pitbull Terrier-Golden Retriever,1,0,0.0,1,1.0,Golden Retriever-Labrador Retriever:1
+American Pitbull Terrier-Great Pyrenees,1,0,0.0,1,1.0,American Pitbull Terrier-Labrador Retriever:1
+American Pitbull Terrier-Jack Russell Terrier,1,0,0.0,1,1.0,American Pitbull Terrier-American Staffordshire Terrier:1
+American Pitbull Terrier-Labrador Retriever,18,4,0.2222222222222222,17,0.9444444444444444,American Pitbull Terrier-American Staffordshire Terrier:4;American Pitbull Terrier-Mastiff:1;Labrador Retriever-Unknown:3;Boxer-Labrador Retriever:1;American Pitbull Terrier-Boxer:2;German Shepherd Dog-Unknown:1;American Staffordshire Terrier-Labrador Retriever:1;Border Collie-Labrador Retriever:1
+American Pitbull Terrier-Mastiff,1,0,0.0,1,1.0,American Pitbull Terrier-Rottweiler:1
+American Pitbull Terrier-Rat Terrier,1,0,0.0,0,0.0,Labrador Retriever-Unknown:1
+American Pitbull Terrier-Rottweiler,1,0,0.0,1,1.0,Rottweiler-Unknown:1
+American Pitbull Terrier-Siberian Husky,3,0,0.0,2,0.6666666666666666,Labrador Retriever-Siberian Husky:2;Boxer-Labrador Retriever:1
+American Pitbull Terrier-Unknown,12,0,0.0,12,1.0,American Pitbull Terrier-American Staffordshire Terrier:6;American Pitbull Terrier-Boxer:2;American Pitbull Terrier-Australian Cattle Dog:1;Labrador Retriever-Unknown:1;Australian Cattle Dog-Unknown:1;American Pitbull Terrier-Labrador Retriever:1
+American Pitbull Terrier-Vizsla,1,0,0.0,1,1.0,American Pitbull Terrier-American Staffordshire Terrier:1
+American Pitbull Terrier-Weimaraner,1,0,0.0,1,1.0,American Pitbull Terrier-American Staffordshire Terrier:1
+American Staffordshire Terrier,5,0,0.0,5,1.0,American Pitbull Terrier-American Staffordshire Terrier:5
+American Staffordshire Terrier-Australian Cattle Dog,3,0,0.0,3,1.0,American Pitbull Terrier-Australian Cattle Dog:3
+American Staffordshire Terrier-Basset Hound,1,0,0.0,1,1.0,American Pitbull Terrier-American Staffordshire Terrier:1
+American Staffordshire Terrier-Border Collie,1,0,0.0,1,1.0,American Pitbull Terrier-American Staffordshire Terrier:1
+American Staffordshire Terrier-Boston Terrier,1,0,0.0,1,1.0,American Pitbull Terrier-American Staffordshire Terrier:1
+American Staffordshire Terrier-Boxer,7,0,0.0,5,0.7142857142857143,American Pitbull Terrier-American Staffordshire Terrier:4;Boston Terrier-Boxer:1;American Pitbull Terrier-Australian Cattle Dog:1;American Pitbull Terrier-Unknown:1
+American Staffordshire Terrier-Bulldog,2,0,0.0,2,1.0,American Pitbull Terrier-American Staffordshire Terrier:2
+American Staffordshire Terrier-Chinese Shar-Pei,1,0,0.0,1,1.0,American Pitbull Terrier-American Staffordshire Terrier:1
+American Staffordshire Terrier-Cocker Spaniel,1,0,0.0,1,1.0,American Pitbull Terrier-American Staffordshire Terrier:1
+American Staffordshire Terrier-Collie,1,0,0.0,1,1.0,Border Collie-Collie:1
+American Staffordshire Terrier-Doberman Pinscher,1,0,0.0,0,0.0,American Pitbull Terrier-Labrador Retriever:1
+American Staffordshire Terrier-German Shepherd Dog,2,0,0.0,1,0.5,Australian Cattle Dog-German Shepherd Dog:1;American Pitbull Terrier-Labrador Retriever:1
+American Staffordshire Terrier-Great Dane,1,0,0.0,0,0.0,American Pitbull Terrier-Unknown:1
+American Staffordshire Terrier-Labrador Retriever,10,0,0.0,8,0.8,American Pitbull Terrier-Labrador Retriever:3;Labrador Retriever-Unknown:1;German Shepherd Dog-Labrador Retriever:1;American Pitbull Terrier-American Staffordshire Terrier:2;American Pitbull Terrier-Unknown:1;American Pitbull Terrier-German Shepherd Dog:1;Labrador Retriever-Siberian Husky:1
+American Staffordshire Terrier-Mastiff,1,0,0.0,1,1.0,American Pitbull Terrier-American Staffordshire Terrier:1
+American Staffordshire Terrier-Rat Terrier,1,0,0.0,0,0.0,American Pitbull Terrier-Chihuahua:1
+American Staffordshire Terrier-Rottweiler,1,0,0.0,1,1.0,Labrador Retriever-Rottweiler:1
+American Staffordshire Terrier-Shih Tzu,1,1,1.0,1,1.0,
+American Staffordshire Terrier-Siberian Husky,2,0,0.0,2,1.0,Labrador Retriever-Siberian Husky:1;Siberian Husky-Unknown:1
+American Staffordshire Terrier-Unknown,4,0,0.0,4,1.0,American Pitbull Terrier-American Staffordshire Terrier:3;American Staffordshire Terrier-Labrador Retriever:1
+Australian Cattle Dog,13,10,0.7692307692307693,13,1.0,Australian Cattle Dog-Border Collie:2;Australian Cattle Dog-Labrador Retriever:1
+Australian Cattle Dog-Australian Shepherd,4,1,0.25,4,1.0,Australian Cattle Dog:1;Australian Cattle Dog-German Shepherd Dog:1;Australian Cattle Dog-Border Collie:1
+Australian Cattle Dog-Beagle,3,0,0.0,2,0.6666666666666666,Australian Cattle Dog-Labrador Retriever:1;Border Collie-Unknown:1;Australian Cattle Dog-Australian Shepherd:1
+Australian Cattle Dog-Border Collie,9,5,0.5555555555555556,9,1.0,Australian Cattle Dog-Labrador Retriever:2;Australian Cattle Dog:1;Border Collie-Boxer:1
+Australian Cattle Dog-Boxer,1,0,0.0,1,1.0,Australian Cattle Dog-Unknown:1
+Australian Cattle Dog-Cardigan Welsh Corgi,1,0,0.0,1,1.0,Australian Cattle Dog-Australian Shepherd:1
+Australian Cattle Dog-Chihuahua,2,1,0.5,2,1.0,Australian Cattle Dog-German Shorthaired Pointer:1
+Australian Cattle Dog-Collie,1,0,0.0,1,1.0,Australian Cattle Dog-Cardigan Welsh Corgi:1
+Australian Cattle Dog-English Cocker Spaniel,1,0,0.0,1,1.0,Australian Cattle Dog-Australian Shepherd:1
+Australian Cattle Dog-German Shepherd Dog,9,3,0.3333333333333333,9,1.0,German Shepherd Dog:1;German Shepherd Dog-Shih Tzu:1;German Shepherd Dog-Unknown:1;Australian Cattle Dog-Labrador Retriever:1;Australian Cattle Dog-Border Collie:1;Australian Cattle Dog:1
+Australian Cattle Dog-German Shorthaired Pointer,1,0,0.0,1,1.0,Australian Cattle Dog-Labrador Retriever:1
+Australian Cattle Dog-Great Pyrenees,2,1,0.5,2,1.0,Border Collie-Great Pyrenees:1
+Australian Cattle Dog-Jack Russell Terrier,2,0,0.0,1,0.5,American Pitbull Terrier-American Staffordshire Terrier:1;Jack Russell Terrier-Unknown:1
+Australian Cattle Dog-Labrador Retriever,6,2,0.3333333333333333,5,0.8333333333333334,Australian Cattle Dog-Treeing Walker Coonhound:1;Labrador Retriever-Unknown:1;Border Collie-Cocker Spaniel:1;German Shepherd Dog-Labrador Retriever:1
+Australian Cattle Dog-Old English Sheepdog,1,1,1.0,1,1.0,
+Australian Cattle Dog-Papillon,1,1,1.0,1,1.0,
+Australian Cattle Dog-Poodle,1,0,0.0,1,1.0,Australian Cattle Dog-Jack Russell Terrier:1
+Australian Cattle Dog-Rat Terrier,1,0,0.0,1,1.0,Australian Cattle Dog-Unknown:1
+Australian Cattle Dog-Rottweiler,1,0,0.0,1,1.0,Australian Cattle Dog-Labrador Retriever:1
+Australian Cattle Dog-Siberian Husky,1,0,0.0,0,0.0,Beagle-Golden Retriever:1
+Australian Cattle Dog-Unknown,7,0,0.0,6,0.8571428571428571,American Pitbull Terrier-Border Collie:1;Australian Cattle Dog-Border Collie:2;Australian Cattle Dog:1;Australian Cattle Dog-Siberian Husky:1;Australian Cattle Dog-Labrador Retriever:1;American Pitbull Terrier-Australian Cattle Dog:1
+Australian Cattle Dog-Weimaraner,1,0,0.0,1,1.0,Australian Cattle Dog-Unknown:1
+Australian Shepherd,45,24,0.5333333333333333,43,0.9555555555555556,Australian Shepherd-Labrador Retriever:1;Australian Shepherd-Border Collie:2;Australian Shepherd-Basenji:1;Australian Shepherd-Miniature American Shepherd:11;Australian Shepherd-Unknown:2;Australian Shepherd-German Shepherd Dog:1;Australian Shepherd-Rottweiler:1;Australian Cattle Dog-Border Collie:1;Miniature American Shepherd:1
+Australian Shepherd-Beagle,2,0,0.0,2,1.0,Australian Shepherd-Labrador Retriever:1;Australian Cattle Dog-Australian Shepherd:1
+Australian Shepherd-Border Collie,11,2,0.18181818181818182,8,0.7272727272727273,Australian Cattle Dog-Border Collie:3;Australian Cattle Dog-German Shepherd Dog:1;Border Collie-Labrador Retriever:1;Labrador Retriever-Unknown:2;Australian Cattle Dog-Australian Shepherd:1;Australian Shepherd-Miniature American Shepherd:1
+Australian Shepherd-Boxer,1,0,0.0,0,0.0,Labrador Retriever-Unknown:1
+Australian Shepherd-Brittany,1,0,0.0,1,1.0,Brittany-Jack Russell Terrier:1
+Australian Shepherd-Cardigan Welsh Corgi,1,0,0.0,0,0.0,Australian Cattle Dog-Unknown:1
+Australian Shepherd-Cocker Spaniel,1,0,0.0,0,0.0,Chihuahua-Pomeranian:1
+Australian Shepherd-Dachshund,1,1,1.0,1,1.0,
+Australian Shepherd-English Springer Spaniel,1,1,1.0,1,1.0,
+Australian Shepherd-German Shepherd Dog,4,0,0.0,3,0.75,Dachshund-German Shepherd Dog:1;German Shepherd Dog-Unknown:1;German Shepherd Dog-Labrador Retriever:1;Labrador Retriever-Unknown:1
+Australian Shepherd-Golden Retriever,1,0,0.0,0,0.0,Great Pyrenees-Labrador Retriever:1
+Australian Shepherd-Great Pyrenees,1,0,0.0,1,1.0,Great Pyrenees-Unknown:1
+Australian Shepherd-Irish Setter,1,0,0.0,0,0.0,Labrador Retriever-Unknown:1
+Australian Shepherd-Labrador Retriever,4,0,0.0,3,0.75,German Shepherd Dog-Labrador Retriever:1;Australian Shepherd-German Shepherd Dog:1;Labrador Retriever-Unknown:1;Australian Cattle Dog-Border Collie:1
+Australian Shepherd-Newfoundland,1,0,0.0,0,0.0,Australian Cattle Dog-Great Pyrenees:1
+Australian Shepherd-Poodle,7,4,0.5714285714285714,7,1.0,Australian Cattle Dog-Poodle:1;Poodle-Poodle (Toy):1;Australian Shepherd-Miniature American Shepherd:1
+Australian Shepherd-Poodle (Toy),1,1,1.0,1,1.0,
+Australian Shepherd-Shetland Sheepdog,1,0,0.0,1,1.0,Australian Shepherd-Border Collie:1
+Australian Shepherd-Siberian Husky,1,0,0.0,1,1.0,German Shepherd Dog-Siberian Husky:1
+Australian Shepherd-Unknown,4,0,0.0,3,0.75,German Shepherd Dog-Unknown:1;Australian Shepherd-Golden Retriever:1;Australian Shepherd-German Shepherd Dog:1;Labrador Retriever-Siberian Husky:1
+Basenji,3,3,1.0,3,1.0,
+Basenji-Rat Terrier,1,0,0.0,1,1.0,Chihuahua-Rat Terrier:1
+Basenji-Unknown,1,0,0.0,1,1.0,Basenji-Vizsla:1
+Basset Hound,6,6,1.0,6,1.0,
+Basset Hound-Beagle,1,1,1.0,1,1.0,
+Basset Hound-Border Collie,1,0,0.0,1,1.0,Australian Cattle Dog-Border Collie:1
+Basset Hound-Dalmatian,1,0,0.0,0,0.0,Boxer-Unknown:1
+Basset Hound-English Springer Spaniel,1,1,1.0,1,1.0,
+Basset Hound-Labrador Retriever,1,0,0.0,0,0.0,American Pitbull Terrier-Beagle:1
+Basset Hound-Rottweiler,1,0,0.0,1,1.0,Rottweiler:1
+Basset Hound-Siberian Husky,1,0,0.0,1,1.0,Australian Shepherd-Siberian Husky:1
+Beagle,16,16,1.0,16,1.0,
+Beagle-Border Collie,1,0,0.0,1,1.0,Australian Shepherd-Beagle:1
+Beagle-Boston Terrier,1,1,1.0,1,1.0,
+Beagle-Boxer,1,0,0.0,0,0.0,Border Collie-Labrador Retriever:1
+Beagle-Cavalier King Charles Spaniel,1,1,1.0,1,1.0,
+Beagle-Chihuahua,3,0,0.0,3,1.0,Beagle-Jack Russell Terrier:2;Beagle-Miniature Schnauzer:1
+Beagle-Dachshund,2,0,0.0,2,1.0,Beagle:2
+Beagle-German Shepherd Dog,1,0,0.0,1,1.0,Australian Shepherd-German Shepherd Dog:1
+Beagle-German Shorthaired Pointer,1,0,0.0,1,1.0,Beagle-Unknown:1
+Beagle-Golden Retriever,1,0,0.0,0,0.0,Siberian Husky-Treeing Walker Coonhound:1
+Beagle-Jack Russell Terrier,3,0,0.0,1,0.3333333333333333,Border Collie-Dachshund:1;Chihuahua-Labrador Retriever:1;Beagle-Unknown:1
+Beagle-Labrador Retriever,4,0,0.0,3,0.75,Border Collie-Labrador Retriever:1;Labrador Retriever-Unknown:2;American Pitbull Terrier-Unknown:1
+Beagle-Nova Scotia Duck Tolling Retriever,1,0,0.0,0,0.0,American Pitbull Terrier-Labrador Retriever:1
+Beagle-Pembroke Welsh Corgi,1,0,0.0,1,1.0,Australian Shepherd-Pembroke Welsh Corgi:1
+Beagle-Poodle,1,0,0.0,1,1.0,Beagle-Unknown:1
+Beagle-Poodle (Toy),1,0,0.0,1,1.0,Beagle-Vizsla:1
+Beagle-Pug,2,2,1.0,2,1.0,
+Beagle-Rat Terrier,2,0,0.0,2,1.0,Australian Cattle Dog-Beagle:1;Beagle-Unknown:1
+Beagle-Siberian Husky,1,1,1.0,1,1.0,
+Beagle-Treeing Walker Coonhound,1,0,0.0,1,1.0,Beagle:1
+Beagle-Unknown,4,1,0.25,3,0.75,Beagle:2;Cocker Spaniel-Poodle (Toy):1
+Beagle-Yorkshire Terrier,1,1,1.0,1,1.0,
+Belgian Malinois,6,3,0.5,5,0.8333333333333334,Belgian Malinois-German Shepherd Dog:2;Border Collie-German Shepherd Dog:1
+Belgian Malinois-Dalmatian,1,0,0.0,0,0.0,German Shepherd Dog-Unknown:1
+Belgian Malinois-German Shepherd Dog,3,1,0.3333333333333333,3,1.0,German Shepherd Dog:1;German Shepherd Dog-Labrador Retriever:1
+Belgian Malinois-Unknown,1,0,0.0,0,0.0,German Shepherd Dog-Siberian Husky:1
+Belgian Tervuren,5,4,0.8,4,0.8,Belgian Malinois:1
+Bernese Mountain Dog,15,14,0.9333333333333333,15,1.0,Bernese Mountain Dog-Pomeranian:1
+Bernese Mountain Dog-Great Pyrenees,1,1,1.0,1,1.0,
+Bernese Mountain Dog-Labrador Retriever,1,0,0.0,1,1.0,Golden Retriever-Labrador Retriever:1
+Bernese Mountain Dog-Poodle,9,8,0.8888888888888888,9,1.0,Golden Retriever-Poodle:1
+Bernese Mountain Dog-Poodle (Toy),1,0,0.0,1,1.0,Bernese Mountain Dog-Poodle:1
+Bichon Frise,6,5,0.8333333333333334,5,0.8333333333333334,Poodle-Poodle (Toy):1
+Bichon Frise-Cavalier King Charles Spaniel,4,2,0.5,3,0.75,Bichon Frise-Shih Tzu:1;Cocker Spaniel-Poodle:1
+Bichon Frise-Golden Retriever,1,0,0.0,1,1.0,Golden Retriever-Poodle:1
+Bichon Frise-Jack Russell Terrier,1,0,0.0,1,1.0,Bichon Frise-Poodle:1
+Bichon Frise-Maltese,1,0,0.0,1,1.0,Havanese-Maltese:1
+Bichon Frise-Poodle,2,0,0.0,2,1.0,Chihuahua-Poodle:1;Poodle-Unknown:1
+Bichon Frise-Poodle (Toy),3,0,0.0,3,1.0,Poodle-Poodle (Toy):3
+Bichon Frise-Shih Tzu,2,1,0.5,1,0.5,Maltese-Poodle (Toy):1
+Bichon Frise-West Highland White Terrier,1,0,0.0,1,1.0,Shih Tzu-West Highland White Terrier:1
+Bichon Frise-Yorkshire Terrier,1,1,1.0,1,1.0,
+Biewer Terrier,2,0,0.0,1,0.5,Maltese-Yorkshire Terrier:1;Biewer Terrier-Yorkshire Terrier:1
+Border Collie,32,28,0.875,32,1.0,Australian Cattle Dog-Border Collie:1;Border Collie-Labrador Retriever:2;Australian Shepherd-Border Collie:1
+Border Collie-Boxer,1,1,1.0,1,1.0,
+Border Collie-Cairn Terrier,1,0,0.0,1,1.0,Border Collie-Unknown:1
+Border Collie-Cocker Spaniel,1,0,0.0,0,0.0,Australian Cattle Dog-English Springer Spaniel:1
+Border Collie-Collie,1,0,0.0,1,1.0,Border Collie-Unknown:1
+Border Collie-Flat-Coated Retriever,1,0,0.0,0,0.0,Australian Cattle Dog-Labrador Retriever:1
+Border Collie-German Shepherd Dog,4,0,0.0,3,0.75,Border Collie:1;Border Collie-Labrador Retriever:1;German Shepherd Dog-Mastiff:1;American Pitbull Terrier-Labrador Retriever:1
+Border Collie-Golden Retriever,5,3,0.6,4,0.8,Labrador Retriever-Unknown:1;Golden Retriever-Unknown:1
+Border Collie-Great Pyrenees,2,2,1.0,2,1.0,
+Border Collie-Greyhound,1,0,0.0,1,1.0,Border Collie-Unknown:1
+Border Collie-Icelandic Sheepdog,1,0,0.0,1,1.0,Border Collie-Labrador Retriever:1
+Border Collie-Jack Russell Terrier,2,0,0.0,1,0.5,Border Collie-Unknown:1;Australian Cattle Dog-Labrador Retriever:1
+Border Collie-Labrador Retriever,9,3,0.3333333333333333,8,0.8888888888888888,German Shepherd Dog-Labrador Retriever:2;Boxer-Labrador Retriever:1;Collie-German Shepherd Dog:1;Australian Cattle Dog-Labrador Retriever:1;Border Collie-Siberian Husky:1
+Border Collie-Miniature American Shepherd,1,0,0.0,0,0.0,Australian Shepherd-German Shepherd Dog:1
+Border Collie-Pembroke Welsh Corgi,1,0,0.0,0,0.0,Labrador Retriever-Shih Tzu:1
+Border Collie-Poodle,2,1,0.5,2,1.0,Border Collie-Labrador Retriever:1
+Border Collie-Siberian Husky,1,0,0.0,1,1.0,Border Collie-Great Pyrenees:1
+Border Collie-St. Bernard,1,0,0.0,0,0.0,Labrador Retriever-Unknown:1
+Border Collie-Unknown,6,1,0.16666666666666666,3,0.5,Border Collie:1;Australian Shepherd-Labrador Retriever:1;German Shepherd Dog-Labrador Retriever:1;American Pitbull Terrier-German Shepherd Dog:1;Australian Shepherd-Border Collie:1
+Border Collie-Whippet,1,1,1.0,1,1.0,
+Border Terrier,4,3,0.75,4,1.0,Border Terrier-Weimaraner:1
+Border Terrier-Poodle,1,0,0.0,1,1.0,Chihuahua-Poodle:1
+Borzoi,2,2,1.0,2,1.0,
+Boston Terrier,16,15,0.9375,16,1.0,Boston Terrier-Cocker Spaniel:1
+Boston Terrier-Chihuahua,1,0,0.0,1,1.0,Chihuahua-Jack Russell Terrier:1
+Boston Terrier-Pomeranian,1,0,0.0,1,1.0,Boston Terrier-Unknown:1
+Boston Terrier-Pug,1,1,1.0,1,1.0,
+Bouvier des Flandres,3,2,0.6666666666666666,2,0.6666666666666666,Golden Retriever-Greyhound:1
+Boxer,13,13,1.0,13,1.0,
+Boxer-English Springer Spaniel,1,0,0.0,1,1.0,English Springer Spaniel:1
+Boxer-French Bulldog,1,0,0.0,0,0.0,American Pitbull Terrier-Poodle:1
+Boxer-German Shepherd Dog,3,1,0.3333333333333333,2,0.6666666666666666,German Shepherd Dog-Unknown:1;Labrador Retriever-Unknown:1
+Boxer-Golden Retriever,1,1,1.0,1,1.0,
+Boxer-Great Dane,1,0,0.0,1,1.0,Boxer-Labrador Retriever:1
+Boxer-Great Pyrenees,1,1,1.0,1,1.0,
+Boxer-Greyhound,1,0,0.0,1,1.0,Boxer-Labrador Retriever:1
+Boxer-Jack Russell Terrier,1,0,0.0,1,1.0,Boxer-Labrador Retriever:1
+Boxer-Labrador Retriever,5,1,0.2,2,0.4,American Pitbull Terrier-American Staffordshire Terrier:3;American Pitbull Terrier-Labrador Retriever:1
+Boxer-Mastiff,1,0,0.0,1,1.0,American Pitbull Terrier-Mastiff:1
+Boxer-Rottweiler,1,0,0.0,1,1.0,Labrador Retriever-Rottweiler:1
+Boxer-Siberian Husky,1,0,0.0,0,0.0,Labrador Retriever-Unknown:1
+Boxer-St. Bernard,1,0,0.0,0,0.0,Labrador Retriever-Unknown:1
+Boxer-Unknown,3,1,0.3333333333333333,3,1.0,Boxer-Labrador Retriever:1;Australian Cattle Dog-Boxer:1
+Boxer-Whippet,1,0,0.0,0,0.0,American Pitbull Terrier-American Staffordshire Terrier:1
+Boykin Spaniel,3,0,0.0,2,0.6666666666666666,Boykin Spaniel-Rat Terrier:1;Boykin Spaniel-Golden Retriever:1;Chihuahua-Cocker Spaniel:1
+Brittany,10,10,1.0,10,1.0,
+Brittany-English Springer Spaniel,1,1,1.0,1,1.0,
+Brittany-Labrador Retriever,1,1,1.0,1,1.0,
+Bulldog,8,6,0.75,8,1.0,American Pitbull Terrier-Bulldog:2
+Bulldog-French Bulldog,1,0,0.0,1,1.0,Bulldog-Unknown:1
+Bulldog-Great Pyrenees,1,0,0.0,1,1.0,Boxer-Bulldog:1
+Bulldog-Labrador Retriever,1,0,0.0,1,1.0,Labrador Retriever-Unknown:1
+Bulldog-Unknown,1,0,0.0,1,1.0,Labrador Retriever-Unknown:1
+Cairn Terrier,5,5,1.0,5,1.0,
+Cairn Terrier-Chihuahua,1,0,0.0,1,1.0,Chihuahua-Yorkshire Terrier:1
+Cairn Terrier-Dachshund,1,0,0.0,1,1.0,Dachshund-Unknown:1
+Cairn Terrier-Jack Russell Terrier,1,0,0.0,1,1.0,Jack Russell Terrier-Unknown:1
+Cardigan Welsh Corgi,8,8,1.0,8,1.0,
+Cardigan Welsh Corgi-Chihuahua,1,0,0.0,0,0.0,Dachshund-Poodle (Toy):1
+Cardigan Welsh Corgi-Golden Retriever,1,0,0.0,0,0.0,Labrador Retriever-Unknown:1
+Cardigan Welsh Corgi-Jack Russell Terrier,1,0,0.0,0,0.0,American Pitbull Terrier-Unknown:1
+Cardigan Welsh Corgi-Labrador Retriever,1,0,0.0,1,1.0,Labrador Retriever-Unknown:1
+Cardigan Welsh Corgi-Pembroke Welsh Corgi,1,1,1.0,1,1.0,
+Cardigan Welsh Corgi-Unknown,1,0,0.0,1,1.0,American Pitbull Terrier-Unknown:1
+Cavalier King Charles Spaniel,17,17,1.0,17,1.0,
+Cavalier King Charles Spaniel-Cocker Spaniel,1,0,0.0,1,1.0,Cavalier King Charles Spaniel:1
+Cavalier King Charles Spaniel-Coton De Tulear,1,0,0.0,1,1.0,Cavalier King Charles Spaniel-Poodle:1
+Cavalier King Charles Spaniel-Maltese,1,0,0.0,1,1.0,Cavalier King Charles Spaniel-Coton De Tulear:1
+Cavalier King Charles Spaniel-Papillon,1,0,0.0,0,0.0,Chihuahua-Dachshund:1
+Cavalier King Charles Spaniel-Poodle,3,2,0.6666666666666666,3,1.0,Bichon Frise-Cavalier King Charles Spaniel:1
+Cavalier King Charles Spaniel-Poodle (Toy),1,0,0.0,1,1.0,Cavalier King Charles Spaniel-Poodle:1
+Chesapeake Bay Retriever,4,2,0.5,2,0.5,English Springer Spaniel-Labrador Retriever:1;Labrador Retriever-Unknown:1
+Chesapeake Bay Retriever-German Shepherd Dog,1,0,0.0,0,0.0,Great Pyrenees-Labrador Retriever:1
+Chihuahua,10,3,0.3,10,1.0,Chihuahua-Unknown:5;Bichon Frise-Chihuahua:1;Chihuahua-Papillon:1
+Chihuahua-Cocker Spaniel,1,0,0.0,1,1.0,Chihuahua-Unknown:1
+Chihuahua-Dachshund,13,7,0.5384615384615384,13,1.0,Chihuahua-Unknown:1;Cairn Terrier-Chihuahua:1;Chihuahua-West Highland White Terrier:1;Chihuahua-Poodle:2;Dachshund-Unknown:1
+Chihuahua-German Shepherd Dog,1,1,1.0,1,1.0,
+Chihuahua-Jack Russell Terrier,11,0,0.0,11,1.0,Chihuahua-Poodle:3;Chihuahua-Unknown:1;Chihuahua-Dachshund:1;Chihuahua-Shih Tzu:1;Chihuahua-Yorkshire Terrier:1;Cairn Terrier-Chihuahua:3;Chihuahua-Cocker Spaniel:1
+Chihuahua-Labrador Retriever,1,0,0.0,1,1.0,Labrador Retriever-Unknown:1
+Chihuahua-Maltese,1,0,0.0,1,1.0,Chihuahua-Unknown:1
+Chihuahua-Miniature Schnauzer,2,0,0.0,2,1.0,Chihuahua-Shih Tzu:1;Miniature Schnauzer-Rat Terrier:1
+Chihuahua-Papillon,2,0,0.0,2,1.0,Chihuahua-Pomeranian:1;Chihuahua-Unknown:1
+Chihuahua-Pembroke Welsh Corgi,1,0,0.0,1,1.0,Chihuahua-Jack Russell Terrier:1
+Chihuahua-Pomeranian,5,2,0.4,5,1.0,Chihuahua-Unknown:1;Chihuahua-Dachshund:2
+Chihuahua-Poodle,3,1,0.3333333333333333,3,1.0,Chihuahua-Poodle (Toy):1;Poodle-Pug:1
+Chihuahua-Poodle (Toy),2,0,0.0,2,1.0,Chihuahua-Unknown:2
+Chihuahua-Pug,3,0,0.0,3,1.0,Chihuahua-Italian Greyhound:1;Chihuahua-Jack Russell Terrier:1;Chihuahua-Dachshund:1
+Chihuahua-Rat Terrier,7,0,0.0,6,0.8571428571428571,Cairn Terrier-Chihuahua:1;Chihuahua-Dachshund:3;Dachshund-Unknown:1;Chihuahua-Yorkshire Terrier:1;Chihuahua-Poodle (Toy):1
+Chihuahua-Shiba Inu,1,0,0.0,0,0.0,Siberian Husky-Unknown:1
+Chihuahua-Shih Tzu,4,2,0.5,4,1.0,Chihuahua-Unknown:1;Chihuahua-Poodle:1
+Chihuahua-Treeing Walker Coonhound,1,0,0.0,0,0.0,Jack Russell Terrier-Unknown:1
+Chihuahua-Unknown,8,3,0.375,7,0.875,Chihuahua-Dachshund:2;Chihuahua-Poodle:1;Jack Russell Terrier-Poodle:1;Chihuahua-Pomeranian:1
+Chihuahua-Whippet,1,0,0.0,0,0.0,Rat Terrier-Unknown:1
+Chihuahua-Yorkshire Terrier,4,2,0.5,4,1.0,Chihuahua-Unknown:1;Beagle-Chihuahua:1
+Chinese Crested,2,0,0.0,1,0.5,Chihuahua-Coton De Tulear:1;Chihuahua-Chinese Crested:1
+Chinese Crested-Pug,1,0,0.0,0,0.0,Jack Russell Terrier-Pomeranian:1
+Chinese Shar-Pei,3,3,1.0,3,1.0,
+Chinese Shar-Pei-Collie,1,0,0.0,0,0.0,Alaskan Malamute-Australian Shepherd:1
+Chinese Shar-Pei-Labrador Retriever,1,0,0.0,1,1.0,Akita-Labrador Retriever:1
+Cocker Spaniel,9,9,1.0,9,1.0,
+Cocker Spaniel-Dachshund,1,0,0.0,1,1.0,Chihuahua-Dachshund:1
+Cocker Spaniel-Golden Retriever,1,0,0.0,1,1.0,Golden Retriever-Unknown:1
+Cocker Spaniel-Labrador Retriever,1,0,0.0,1,1.0,Cocker Spaniel-Unknown:1
+Cocker Spaniel-Poodle,8,4,0.5,8,1.0,Poodle-Poodle (Toy):3;Cocker Spaniel-Unknown:1
+Cocker Spaniel-Poodle (Toy),1,0,0.0,1,1.0,Cocker Spaniel-Poodle:1
+Cocker Spaniel-Shih Tzu,1,0,0.0,1,1.0,Poodle-Shih Tzu:1
+Cocker Spaniel-Unknown,1,0,0.0,1,1.0,Cocker Spaniel:1
+Collie,10,9,0.9,10,1.0,Collie-Soft Coated Wheaten Terrier:1
+Collie-Dachshund,1,0,0.0,1,1.0,Chihuahua-Dachshund:1
+Collie-German Shepherd Dog,3,0,0.0,1,0.3333333333333333,Australian Cattle Dog-Labrador Retriever:1;Border Collie-German Shepherd Dog:1;Boxer-Labrador Retriever:1
+Collie-Golden Retriever,1,0,0.0,1,1.0,Collie:1
+Collie-Great Pyrenees,1,0,0.0,1,1.0,Border Collie-Great Pyrenees:1
+Collie-Jack Russell Terrier,1,0,0.0,0,0.0,American Pitbull Terrier-American Staffordshire Terrier:1
+Collie-Miniature American Shepherd,1,0,0.0,0,0.0,Australian Shepherd-Border Collie:1
+Collie-Shetland Sheepdog,1,0,0.0,1,1.0,Collie:1
+Coton De Tulear,3,0,0.0,2,0.6666666666666666,Coton De Tulear-Unknown:2;Border Terrier-Unknown:1
+Coton De Tulear-Jack Russell Terrier,1,0,0.0,1,1.0,Jack Russell Terrier-Unknown:1
+Dachshund,22,17,0.7727272727272727,22,1.0,Chihuahua-Dachshund:4;Beagle-Dachshund:1
+Dachshund-German Shepherd Dog,1,0,0.0,0,0.0,Labrador Retriever-Unknown:1
+Dachshund-Great Dane,1,1,1.0,1,1.0,
+Dachshund-Jack Russell Terrier,1,1,1.0,1,1.0,
+Dachshund-Labrador Retriever,2,0,0.0,1,0.5,Australian Cattle Dog-Boxer:1;Labrador Retriever-Unknown:1
+Dachshund-Miniature Schnauzer,1,1,1.0,1,1.0,
+Dachshund-Pomeranian,1,0,0.0,1,1.0,Chihuahua-Dachshund:1
+Dachshund-Poodle,1,0,0.0,1,1.0,Australian Cattle Dog-Poodle:1
+Dachshund-Rat Terrier,1,0,0.0,1,1.0,Beagle-Dachshund:1
+Dachshund-Shih Tzu,1,0,0.0,1,1.0,Chihuahua-Dachshund:1
+Dachshund-Unknown,4,0,0.0,3,0.75,Dachshund-Shih Tzu:1;Chihuahua-Cocker Spaniel:1;Chihuahua-Dachshund:2
+Dachshund-West Highland White Terrier,1,0,0.0,0,0.0,Chihuahua-Cocker Spaniel:1
+Dalmatian,6,6,1.0,6,1.0,
+Dalmatian-Labrador Retriever,1,1,1.0,1,1.0,
+Dalmatian-Unknown,1,0,0.0,0,0.0,German Shepherd Dog-Labrador Retriever:1
+Dalmatian-Vizsla,1,0,0.0,0,0.0,Australian Cattle Dog-Jack Russell Terrier:1
+Doberman Pinscher,13,13,1.0,13,1.0,
+Doberman Pinscher-German Shepherd Dog,1,0,0.0,1,1.0,Doberman Pinscher-Labrador Retriever:1
+Doberman Pinscher-Labrador Retriever,1,1,1.0,1,1.0,
+Doberman Pinscher-Unknown,1,0,0.0,1,1.0,Doberman Pinscher-Labrador Retriever:1
+Doberman Pinscher-Whippet,1,0,0.0,0,0.0,Rottweiler-Unknown:1
+English Cocker Spaniel,4,2,0.5,4,1.0,English Cocker Spaniel-Jack Russell Terrier:1;Brittany-English Cocker Spaniel:1
+English Cocker Spaniel-English Springer Spaniel,1,0,0.0,1,1.0,Cocker Spaniel-English Cocker Spaniel:1
+English Setter,4,4,1.0,4,1.0,
+English Setter-Gordon Setter,1,0,0.0,1,1.0,English Setter-German Shorthaired Pointer:1
+English Setter-Labrador Retriever,1,0,0.0,1,1.0,German Shorthaired Pointer-Labrador Retriever:1
+English Setter-Poodle,1,0,0.0,1,1.0,Border Collie-Poodle:1
+English Shepherd,3,0,0.0,0,0.0,Border Collie-Unknown:1;Border Collie-Rat Terrier:1;Australian Shepherd-Unknown:1
+English Shepherd-Unknown,1,0,0.0,0,0.0,Australian Shepherd:1
+English Springer Spaniel,12,12,1.0,12,1.0,
+English Springer Spaniel-Poodle,1,0,0.0,1,1.0,Border Collie-Poodle:1
+Flat-Coated Retriever,6,6,1.0,6,1.0,
+Flat-Coated Retriever-Labrador Retriever,1,0,0.0,1,1.0,German Shepherd Dog-Labrador Retriever:1
+French Bulldog,16,16,1.0,16,1.0,
+German Shepherd Dog,56,56,1.0,56,1.0,
+German Shepherd Dog-German Shorthaired Pointer,1,0,0.0,1,1.0,German Shepherd Dog-Labrador Retriever:1
+German Shepherd Dog-Golden Retriever,3,0,0.0,2,0.6666666666666666,German Shepherd Dog-Rottweiler:1;German Shepherd Dog-Labrador Retriever:1;American Staffordshire Terrier-Labrador Retriever:1
+German Shepherd Dog-Great Pyrenees,2,1,0.5,2,1.0,Great Pyrenees-Labrador Retriever:1
+German Shepherd Dog-Greyhound,1,0,0.0,1,1.0,German Shepherd Dog-Labrador Retriever:1
+German Shepherd Dog-Jack Russell Terrier,1,0,0.0,1,1.0,German Shepherd Dog-Labrador Retriever:1
+German Shepherd Dog-Labrador Retriever,19,6,0.3157894736842105,18,0.9473684210526315,Golden Retriever-Labrador Retriever:1;Australian Shepherd-Labrador Retriever:2;Australian Shepherd-German Shepherd Dog:1;Border Collie-Labrador Retriever:1;Labrador Retriever-Unknown:3;Great Pyrenees-Labrador Retriever:1;German Shepherd Dog:1;Labrador Retriever-Siberian Husky:1;Golden Retriever-Great Pyrenees:1;Akita-German Shepherd Dog:1
+German Shepherd Dog-Miniature American Shepherd,1,0,0.0,1,1.0,Australian Shepherd-German Shepherd Dog:1
+German Shepherd Dog-Poodle,1,1,1.0,1,1.0,
+German Shepherd Dog-Rhodesian Ridgeback,1,0,0.0,0,0.0,Labrador Retriever-Unknown:1
+German Shepherd Dog-Rottweiler,3,0,0.0,2,0.6666666666666666,American Pitbull Terrier-Labrador Retriever:1;Rottweiler:1;Labrador Retriever-Rottweiler:1
+German Shepherd Dog-Shetland Sheepdog,1,0,0.0,0,0.0,Golden Retriever-Labrador Retriever:1
+German Shepherd Dog-Shiba Inu,1,0,0.0,0,0.0,Labrador Retriever-Unknown:1
+German Shepherd Dog-Siberian Husky,10,8,0.8,10,1.0,German Shepherd Dog-Labrador Retriever:1;German Shepherd Dog-Unknown:1
+German Shepherd Dog-Unknown,9,2,0.2222222222222222,9,1.0,German Shepherd Dog-Labrador Retriever:4;Belgian Malinois-German Shepherd Dog:1;German Shepherd Dog-Golden Retriever:1;German Shepherd Dog-Siberian Husky:1
+German Shorthaired Pointer,9,9,1.0,9,1.0,
+German Shorthaired Pointer-Labrador Retriever,4,0,0.0,4,1.0,Boxer-Labrador Retriever:1;German Shepherd Dog-Labrador Retriever:1;Border Collie-German Shorthaired Pointer:1;Labrador Retriever-Unknown:1
+German Shorthaired Pointer-Poodle,1,1,1.0,1,1.0,
+German Shorthaired Pointer-Siberian Husky,1,0,0.0,1,1.0,Labrador Retriever-Siberian Husky:1
+Giant Schnauzer,3,3,1.0,3,1.0,
+Giant Schnauzer-Poodle,1,0,0.0,1,1.0,Border Collie-Poodle:1
+Golden Retriever,125,124,0.992,125,1.0,Golden Retriever-Labrador Retriever:1
+Golden Retriever-Great Pyrenees,2,1,0.5,1,0.5,German Shepherd Dog-Labrador Retriever:1
+Golden Retriever-Irish Setter,1,0,0.0,1,1.0,Golden Retriever-Labrador Retriever:1
+Golden Retriever-Jack Russell Terrier,1,0,0.0,1,1.0,Golden Retriever-Labrador Retriever:1
+Golden Retriever-Labrador Retriever,13,5,0.38461538461538464,13,1.0,American Pitbull Terrier-Labrador Retriever:2;Labrador Retriever-Unknown:2;Labrador Retriever:3;Golden Retriever-Siberian Husky:1
+Golden Retriever-Mastiff,1,0,0.0,0,0.0,Australian Cattle Dog-Labrador Retriever:1
+Golden Retriever-Newfoundland,1,1,1.0,1,1.0,
+Golden Retriever-Poodle,48,42,0.875,48,1.0,Golden Retriever-Poodle (Toy):2;Poodle:1;Bichon Frise-Golden Retriever:1;Poodle-Poodle (Toy):1;Alaskan Malamute-Poodle:1
+Golden Retriever-Poodle (Toy),4,2,0.5,4,1.0,Golden Retriever-Poodle:2
+Golden Retriever-Siberian Husky,1,1,1.0,1,1.0,
+Golden Retriever-St. Bernard,1,1,1.0,1,1.0,
+Golden Retriever-Unknown,2,0,0.0,1,0.5,Australian Shepherd-Chihuahua:1;Golden Retriever-Jack Russell Terrier:1
+Golden Retriever-Whippet,1,0,0.0,1,1.0,Golden Retriever-Labrador Retriever:1
+Gordon Setter,3,1,0.3333333333333333,1,0.3333333333333333,Australian Cattle Dog-German Shorthaired Pointer:1;German Shorthaired Pointer-Unknown:1
+Great Dane,20,19,0.95,20,1.0,Great Dane-Unknown:1
+Great Dane-Irish Wolfhound,1,0,0.0,1,1.0,Great Dane:1
+Great Dane-Labrador Retriever,4,0,0.0,2,0.5,American Pitbull Terrier-American Staffordshire Terrier:1;American Pitbull Terrier-Great Pyrenees:1;Golden Retriever-Labrador Retriever:1;American Pitbull Terrier-Labrador Retriever:1
+Great Dane-Unknown,1,0,0.0,1,1.0,American Pitbull Terrier-Great Dane:1
+Great Pyrenees,11,9,0.8181818181818182,11,1.0,Great Pyrenees-Labrador Retriever:1;Great Pyrenees-Poodle:1
+Great Pyrenees-Labrador Retriever,4,3,0.75,4,1.0,Border Collie-Labrador Retriever:1
+Great Pyrenees-Mastiff,1,0,0.0,1,1.0,Labrador Retriever-Mastiff:1
+Great Pyrenees-Newfoundland,1,1,1.0,1,1.0,
+Great Pyrenees-Poodle,1,0,0.0,1,1.0,Great Pyrenees:1
+Great Pyrenees-Siberian Husky,1,0,0.0,1,1.0,Great Pyrenees-Labrador Retriever:1
+Great Pyrenees-St. Bernard,1,0,0.0,1,1.0,Great Pyrenees-Labrador Retriever:1
+Great Pyrenees-Unknown,1,0,0.0,1,1.0,German Shepherd Dog-Great Pyrenees:1
+Greyhound,10,9,0.9,10,1.0,Greyhound-Whippet:1
+Greyhound-Labrador Retriever,2,0,0.0,1,0.5,German Shepherd Dog-Golden Retriever:1;German Shepherd Dog-Labrador Retriever:1
+Greyhound-Siberian Husky,1,0,0.0,0,0.0,American Pitbull Terrier-American Staffordshire Terrier:1
+Havanese,13,8,0.6153846153846154,11,0.8461538461538461,Havanese-Unknown:1;American Pitbull Terrier-Havanese:1;Chihuahua-Jack Russell Terrier:1;Maltese-Yorkshire Terrier:1;Dachshund-Havanese:1
+Havanese-Jack Russell Terrier,1,0,0.0,0,0.0,Chihuahua-Unknown:1
+Havanese-Maltese,1,0,0.0,1,1.0,Maltese-Shih Tzu:1
+Havanese-Poodle (Toy),1,0,0.0,0,0.0,Maltese-Poodle:1
+Havanese-Shih Tzu,1,0,0.0,0,0.0,Chihuahua-Pomeranian:1
+Havanese-Unknown,1,0,0.0,0,0.0,Chihuahua-Poodle:1
+Havanese-Yorkshire Terrier,1,0,0.0,0,0.0,Miniature Schnauzer-Pug:1
+Icelandic Sheepdog,2,0,0.0,2,1.0,Great Dane-Icelandic Sheepdog:1;Airedale Terrier-Icelandic Sheepdog:1
+Irish Setter,4,3,0.75,3,0.75,Labrador Retriever-Poodle:1
+Irish Setter-Labrador Retriever,1,0,0.0,1,1.0,Border Collie-Labrador Retriever:1
+Irish Setter-Poodle,2,0,0.0,2,1.0,Poodle-Poodle (Toy):2
+Irish Water Spaniel,2,1,0.5,2,1.0,Irish Water Spaniel-Unknown:1
+Irish Wolfhound,4,1,0.25,4,1.0,Irish Wolfhound-Jack Russell Terrier:3
+Irish Wolfhound-Poodle,1,0,0.0,1,1.0,Jack Russell Terrier-Poodle:1
+Italian Greyhound,2,0,0.0,1,0.5,Chihuahua-Italian Greyhound:1;Jack Russell Terrier-Unknown:1
+Jack Russell Terrier,8,5,0.625,8,1.0,Jack Russell Terrier-Unknown:2;American Staffordshire Terrier-Jack Russell Terrier:1
+Jack Russell Terrier-Labrador Retriever,2,0,0.0,2,1.0,Australian Cattle Dog-Labrador Retriever:1;Border Collie-Labrador Retriever:1
+Jack Russell Terrier-Miniature Schnauzer,1,0,0.0,1,1.0,Chihuahua-Miniature Schnauzer:1
+Jack Russell Terrier-Pembroke Welsh Corgi,1,0,0.0,0,0.0,Siberian Husky-Unknown:1
+Jack Russell Terrier-Pomeranian,1,0,0.0,0,0.0,Chihuahua-Unknown:1
+Jack Russell Terrier-Poodle (Toy),1,0,0.0,1,1.0,Jack Russell Terrier-Rat Terrier:1
+Jack Russell Terrier-Pug,1,1,1.0,1,1.0,
+Jack Russell Terrier-Rat Terrier,2,0,0.0,2,1.0,Jack Russell Terrier-Unknown:1;Australian Cattle Dog-Rat Terrier:1
+Jack Russell Terrier-Shih Tzu,1,0,0.0,1,1.0,Chihuahua-Shih Tzu:1
+Jack Russell Terrier-Unknown,4,0,0.0,3,0.75,Beagle-Jack Russell Terrier:1;German Shepherd Dog-Unknown:1;Jack Russell Terrier-Rat Terrier:1;Chihuahua-Shih Tzu:1
+Keeshond,4,3,0.75,3,0.75,Rat Terrier-Shiba Inu:1
+Labrador Retriever,128,122,0.953125,127,0.9921875,Golden Retriever-Labrador Retriever:1;American Staffordshire Terrier-Unknown:1;American Staffordshire Terrier-Labrador Retriever:1;Labrador Retriever-Unknown:1;Labrador Retriever-Siberian Husky:1;German Shepherd Dog-Labrador Retriever:1
+Labrador Retriever-Mastiff,3,1,0.3333333333333333,3,1.0,Labrador Retriever-Unknown:2
+Labrador Retriever-Newfoundland,1,0,0.0,1,1.0,Great Pyrenees-Labrador Retriever:1
+Labrador Retriever-Pembroke Welsh Corgi,1,0,0.0,1,1.0,Labrador Retriever-Unknown:1
+Labrador Retriever-Poodle,34,31,0.9117647058823529,33,0.9705882352941176,Golden Retriever-Poodle (Toy):1;Australian Shepherd-Poodle:1;American Staffordshire Terrier-Poodle:1
+Labrador Retriever-Poodle (Toy),1,0,0.0,1,1.0,Labrador Retriever-Poodle:1
+Labrador Retriever-Rat Terrier,1,0,0.0,1,1.0,Labrador Retriever-Unknown:1
+Labrador Retriever-Rhodesian Ridgeback,1,0,0.0,1,1.0,German Shepherd Dog-Labrador Retriever:1
+Labrador Retriever-Rottweiler,3,1,0.3333333333333333,3,1.0,Labrador Retriever-Unknown:1;Golden Retriever-Rottweiler:1
+Labrador Retriever-Siberian Husky,5,3,0.6,5,1.0,German Shepherd Dog-Labrador Retriever:1;Alaskan Malamute-Siberian Husky:1
+Labrador Retriever-Treeing Walker Coonhound,1,0,0.0,1,1.0,Beagle-Labrador Retriever:1
+Labrador Retriever-Unknown,30,6,0.2,25,0.8333333333333334,Boxer-Labrador Retriever:3;American Staffordshire Terrier-Unknown:1;German Shepherd Dog-Labrador Retriever:4;Great Pyrenees-Labrador Retriever:2;Golden Retriever-Labrador Retriever:4;American Pitbull Terrier-American Staffordshire Terrier:1;Beagle-Miniature Schnauzer:1;American Staffordshire Terrier-Labrador Retriever:2;Labrador Retriever:1;Beagle-Greyhound:1;American Pitbull Terrier-Australian Shepherd:1;American Pitbull Terrier-Labrador Retriever:1;Labrador Retriever-Poodle:1;Beagle-Mastiff:1
+Labrador Retriever-Vizsla,1,0,0.0,1,1.0,Labrador Retriever-Unknown:1
+Labrador Retriever-Weimaraner,2,1,0.5,2,1.0,American Pitbull Terrier-Labrador Retriever:1
+Labrador Retriever-Whippet,2,0,0.0,1,0.5,Labrador Retriever-Unknown:1;Chihuahua-Unknown:1
+Leonberger,7,7,1.0,7,1.0,
+Maltese,4,3,0.75,4,1.0,Maltese-Shih Tzu:1
+Maltese-Miniature Schnauzer,1,0,0.0,0,0.0,Chihuahua-Poodle:1
+Maltese-Papillon,1,0,0.0,1,1.0,Chihuahua-Papillon:1
+Maltese-Pomeranian,1,0,0.0,1,1.0,Pomeranian-Unknown:1
+Maltese-Poodle,4,1,0.25,4,1.0,Poodle-Poodle (Toy):2;Poodle-Shih Tzu:1
+Maltese-Poodle (Toy),2,0,0.0,2,1.0,Poodle-Poodle (Toy):1;Maltese-Poodle:1
+Maltese-Rat Terrier,1,0,0.0,0,0.0,Chihuahua-Poodle (Toy):1
+Maltese-Shih Tzu,2,2,1.0,2,1.0,
+Maltese-Unknown,1,0,0.0,0,0.0,Chihuahua-Yorkshire Terrier:1
+Maltese-West Highland White Terrier,1,0,0.0,1,1.0,Maltese-Poodle:1
+Maltese-Yorkshire Terrier,4,1,0.25,4,1.0,Bichon Frise-Yorkshire Terrier:1;Shih Tzu-Yorkshire Terrier:1;Poodle-Yorkshire Terrier:1
+Mastiff,4,4,1.0,4,1.0,
+Mastiff-Unknown,1,0,0.0,1,1.0,Mastiff:1
+Miniature American Shepherd,13,1,0.07692307692307693,12,0.9230769230769231,Australian Shepherd-Miniature American Shepherd:11;Australian Shepherd:1
+Miniature American Shepherd-Poodle (Toy),1,0,0.0,0,0.0,Australian Shepherd-Poodle:1
+Miniature Schnauzer,14,14,1.0,14,1.0,
+Miniature Schnauzer-Pembroke Welsh Corgi,1,0,0.0,1,1.0,Miniature Schnauzer-Rat Terrier:1
+Miniature Schnauzer-Poodle,3,3,1.0,3,1.0,
+Miniature Schnauzer-Poodle (Toy),1,0,0.0,1,1.0,Miniature Schnauzer-Poodle:1
+Miniature Schnauzer-Rat Terrier,1,0,0.0,1,1.0,Chihuahua-Miniature Schnauzer:1
+Miniature Schnauzer-Shih Tzu,1,1,1.0,1,1.0,
+Miniature Schnauzer-Unknown,1,0,0.0,1,1.0,Chihuahua-Miniature Schnauzer:1
+Miniature Schnauzer-Yorkshire Terrier,1,0,0.0,1,1.0,Yorkshire Terrier:1
+Newfoundland,14,14,1.0,14,1.0,
+Newfoundland-Poodle,1,1,1.0,1,1.0,
+Norwich Terrier,4,0,0.0,4,1.0,Norwich Terrier-Unknown:1;Beagle-Norwich Terrier:1;Cairn Terrier-Norwich Terrier:1;Dachshund-Norwich Terrier:1
+Norwich Terrier-Yorkshire Terrier,1,0,0.0,1,1.0,Havanese-Yorkshire Terrier:1
+Nova Scotia Duck Tolling Retriever,3,3,1.0,3,1.0,
+Old English Sheepdog,3,3,1.0,3,1.0,
+Old English Sheepdog-Poodle,5,4,0.8,5,1.0,Poodle-Poodle (Toy):1
+Old English Sheepdog-Poodle (Toy),1,0,0.0,1,1.0,Old English Sheepdog-Poodle:1
+Old English Sheepdog-Unknown,1,1,1.0,1,1.0,
+Papillon,2,0,0.0,2,1.0,Papillon-Yorkshire Terrier:1;Papillon-Pembroke Welsh Corgi:1
+Papillon-Unknown,1,0,0.0,0,0.0,Chihuahua-Shih Tzu:1
+Papillon-Whippet,1,0,0.0,1,1.0,Border Collie-Papillon:1
+Pembroke Welsh Corgi,22,22,1.0,22,1.0,
+Pembroke Welsh Corgi-Pomeranian,1,0,0.0,1,1.0,Jack Russell Terrier-Pomeranian:1
+Pembroke Welsh Corgi-Unknown,1,0,0.0,1,1.0,Cardigan Welsh Corgi-Pembroke Welsh Corgi:1
+Pomeranian,6,0,0.0,6,1.0,Pomeranian-Shiba Inu:2;Pomeranian-Unknown:3;American Eskimo Dog-Pomeranian:1
+Pomeranian-Rat Terrier,1,0,0.0,0,0.0,Australian Cattle Dog-Chihuahua:1
+Pomeranian-Shiba Inu,1,0,0.0,1,1.0,American Eskimo Dog-Pomeranian:1
+Pomeranian-Shih Tzu,1,0,0.0,1,1.0,Chihuahua-Shih Tzu:1
+Pomeranian-Siberian Husky,2,2,1.0,2,1.0,
+Pomeranian-Unknown,1,0,0.0,1,1.0,Alaskan Malamute-Pomeranian:1
+Pomeranian-Yorkshire Terrier,1,1,1.0,1,1.0,
+Poodle,37,30,0.8108108108108109,37,1.0,Australian Shepherd-Poodle:1;Poodle-Poodle (Toy):5;Golden Retriever-Poodle:1
+Poodle (Toy),6,0,0.0,5,0.8333333333333334,Poodle-Poodle (Toy):5;Miniature Schnauzer-Poodle:1
+Poodle (Toy)-Shih Tzu,3,0,0.0,3,1.0,Poodle-Shih Tzu:3
+Poodle (Toy)-Unknown,1,0,0.0,1,1.0,Poodle-Poodle (Toy):1
+Poodle (Toy)-Yorkshire Terrier,3,0,0.0,3,1.0,Poodle-Yorkshire Terrier:1;Cairn Terrier-Poodle (Toy):1;Poodle-Poodle (Toy):1
+Poodle-Poodle (Toy),1,1,1.0,1,1.0,
+Poodle-Rottweiler,1,0,0.0,1,1.0,Labrador Retriever-Rottweiler:1
+Poodle-Shih Tzu,3,2,0.6666666666666666,3,1.0,Chihuahua-Shih Tzu:1
+Poodle-Soft Coated Wheaten Terrier,2,2,1.0,2,1.0,
+Poodle-St. Bernard,2,1,0.5,2,1.0,Border Collie-Poodle:1
+Poodle-Unknown,2,0,0.0,2,1.0,Bichon Frise-Poodle:1;Chihuahua-Poodle:1
+Poodle-Yorkshire Terrier,2,1,0.5,2,1.0,Poodle-Poodle (Toy):1
+Portuguese Water Dog,5,5,1.0,5,1.0,
+Pug,13,11,0.8461538461538461,13,1.0,French Bulldog-Pug:1;Chihuahua-Pug:1
+Rat Terrier,3,0,0.0,2,0.6666666666666666,Jack Russell Terrier-Rat Terrier:2;Jack Russell Terrier-Unknown:1
+Rat Terrier-Shih Tzu,1,0,0.0,1,1.0,Chihuahua-Shih Tzu:1
+Rat Terrier-Unknown,2,0,0.0,1,0.5,Jack Russell Terrier-Unknown:1;American Pitbull Terrier-Chihuahua:1
+Rhodesian Ridgeback,11,11,1.0,11,1.0,
+Rhodesian Ridgeback-Unknown,1,0,0.0,0,0.0,German Shepherd Dog-Great Dane:1
+Rottweiler,9,8,0.8888888888888888,9,1.0,Labrador Retriever-Rottweiler:1
+Rottweiler-Siberian Husky,1,1,1.0,1,1.0,
+Rottweiler-Unknown,1,0,0.0,0,0.0,Boxer-Labrador Retriever:1
+Samoyed,3,1,0.3333333333333333,3,1.0,Australian Shepherd-Samoyed:1;Samoyed-Siberian Husky:1
+Schipperke,2,1,0.5,2,1.0,Schipperke-Unknown:1
+Scottish Terrier,4,4,1.0,4,1.0,
+Scottish Terrier-West Highland White Terrier,1,0,0.0,1,1.0,American Staffordshire Terrier-West Highland White Terrier:1
+Shetland Sheepdog,12,10,0.8333333333333334,12,1.0,Border Collie-Shetland Sheepdog:1;Doberman Pinscher-Shetland Sheepdog:1
+Shetland Sheepdog-Unknown,1,0,0.0,1,1.0,German Shepherd Dog-Unknown:1
+Shiba Inu,5,2,0.4,5,1.0,Italian Greyhound-Shiba Inu:1;Shiba Inu-Siberian Husky:1;Collie-Shiba Inu:1
+Shiba Inu-Siberian Husky,1,0,0.0,0,0.0,Border Collie-Labrador Retriever:1
+Shih Tzu,13,13,1.0,13,1.0,
+Shih Tzu-Unknown,2,0,0.0,2,1.0,Border Collie-Shih Tzu:1;Shih Tzu:1
+Shih Tzu-Yorkshire Terrier,3,3,1.0,3,1.0,
+Siberian Husky,12,8,0.6666666666666666,12,1.0,German Shepherd Dog-Siberian Husky:4
+Siberian Husky-Unknown,1,0,0.0,1,1.0,Border Collie-Siberian Husky:1
+Silken Windhound,2,0,0.0,1,0.5,Borzoi-Silken Windhound:1;Borzoi-Whippet:1
+Soft Coated Wheaten Terrier,7,7,1.0,7,1.0,
+Soft Coated Wheaten Terrier-Unknown,1,0,0.0,0,0.0,Chihuahua-Miniature Schnauzer:1
+Soft Coated Wheaten Terrier-Yorkshire Terrier,1,0,0.0,0,0.0,Chihuahua-Unknown:1
+Spinone Italiano,2,0,0.0,0,0.0,Australian Cattle Dog-Unknown:1;Poodle-Unknown:1
+St. Bernard,5,5,1.0,5,1.0,
+Treeing Walker Coonhound,2,0,0.0,2,1.0,Beagle-Treeing Walker Coonhound:1;Rat Terrier-Treeing Walker Coonhound:1
+Treeing Walker Coonhound-Unknown,1,0,0.0,1,1.0,Labrador Retriever-Unknown:1
+Unknown-Whippet,1,0,0.0,1,1.0,Beagle-Whippet:1
+Unknown-Wire Fox Terrier,1,0,0.0,0,0.0,Chihuahua-Poodle (Toy):1
+Unknown-Yorkshire Terrier,1,0,0.0,1,1.0,Yorkshire Terrier:1
+Vizsla,10,7,0.7,10,1.0,Chihuahua-Vizsla:1;Greyhound-Vizsla:1;Unknown-Vizsla:1
+Weimaraner,5,5,1.0,5,1.0,
+Welsh Terrier,3,2,0.6666666666666666,2,0.6666666666666666,Australian Cattle Dog-Unknown:1
+West Highland White Terrier,9,5,0.5555555555555556,9,1.0,Bulldog-West Highland White Terrier:1;Jack Russell Terrier-West Highland White Terrier:1;American Pitbull Terrier-West Highland White Terrier:1;Chihuahua-West Highland White Terrier:1
+Whippet,6,5,0.8333333333333334,6,1.0,Greyhound-Whippet:1
+Wire Fox Terrier,2,1,0.5,1,0.5,Unknown-Welsh Terrier:1
+Yorkshire Terrier,11,9,0.8181818181818182,11,1.0,Maltese-Yorkshire Terrier:1;Poodle (Toy)-Yorkshire Terrier:1
