@@ -42,6 +42,79 @@ pip install -e .
 - Typical install time: Typically <5 minutes on a normal desktop with internet access.
 - Expected demo runtime: Typically <1 minute for the toy dataset after dependencies are installed.
 
+## Reproduce The Paper Results
+
+Mode 6 reproduces the paper's 100-class breed-prediction experiment. It trains a new random-forest model with the paper settings (`100` PCA components and random seed `42`), selects the pure-versus-mixed prediction threshold on the training set, and evaluates the model on the fixed test set.
+
+The required PCA-space data and labels are included in this repository, so this workflow does **not** require the external chromosome-wise parquet files used by Modes 1, 2, 3, and 5.
+
+### 1. Clone The Repository
+
+```bash
+git clone https://github.com/AkeyLab/DAP_breed_prediction.git
+cd DAP_breed_prediction
+```
+
+### 2. Create An Environment And Install Dependencies
+
+Python `3.9` or newer is required. A virtual environment is recommended:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
+
+### 3. Run The Reproduction
+
+From the repository root, run:
+
+```bash
+python main.py -reproduce -config_path configs/config_mode_6_template.yml
+```
+
+No configuration changes are needed for a first run. The supplied config writes results to `results/mode_6/`. Training is CPU-only and takes approximately 4-5 minutes on the system used for the reference run; runtime will vary with CPU resources.
+
+Mode 6 uses these bundled files:
+
+- `data/X_train_SNP_WG_prune_v3_1_std_pca_100.csv`: training samples represented by 100 principal components
+- `data/X_test_SNP_WG_prune_v3_1_std_pca_100.csv`: fixed test samples represented by the same components
+- `data/y_combined_100.csv`: 100-class breed/admixture labels
+
+The separately bundled pretrained model in `model/` is not used by this command; Mode 6 trains a new model to reproduce the training and evaluation procedure.
+
+### 4. Verify The Results
+
+A successful reference run reports:
+
+```text
+Best purity threshold (theta) is 0.7.
+Strict Accuracy: 58.67%
+Loose Accuracy: 91.71%
+Number of Wrong Samples - Strict: 818, Loose: 164
+```
+
+Strict accuracy requires the complete pure/mixed breed assignment to match. Loose accuracy counts a prediction as correct when at least one predicted breed overlaps the true assignment. Small numerical differences may occur across operating systems or dependency versions.
+
+The run creates:
+
+```text
+results/mode_6/
+├── process.log
+├── Model/
+│   └── Prediction_model_theta_0.7.pkl
+├── Table/
+│   ├── Raw_prediction.csv
+│   ├── Transformed_prediction.csv
+│   ├── Predictions.csv
+│   ├── Per_section_performance.csv
+│   └── Per_class_prediction_details.csv
+└── Figure/
+```
+
+Check `results/mode_6/process.log` for the parameters, threshold, and summary metrics from the run. To perform another independent clean run, copy `configs/config_mode_6_template.yml`, change `result_folder_path` to a new directory, and run the command with the copied config.
+
 ## Usage
 
 Run from repository root:
@@ -113,7 +186,7 @@ Train on DAP data using a user-provided breed list.
   - `test_size` (default `0.3`)
 
 ### Mode 6
-Reproduce the 100-class paper model using bundled PCA-space train/test matrices.
+Reproduce the 100-class paper model using bundled PCA-space train/test matrices. See [Reproduce The Paper Results](#reproduce-the-paper-results) for the complete first-time workflow and expected results.
 
 - Flags: `-reproduce`
 - Required config keys:
