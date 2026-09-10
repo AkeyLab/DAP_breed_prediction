@@ -1,4 +1,7 @@
 # Paths
 result_folder_path: './results/mode_2'
 SNP_csv_path: './data/Toy_X_snps.csv'
-breed_list_text_path: './data/Toy_a_short_breed_list.txt'
+# The 14 breed outputs examined in the paper's informative-variant analysis.
+breed_list_text_path: './data/paper_14_breed_list.txt'
+# Keep this false for an exact 14-output targeted model.
+include_unknown: false

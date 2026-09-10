@@ -19,6 +19,7 @@ DAP_breed_prediction/
 │   ├── Toy_X_snps.csv
 │   ├── Toy_Y_labels.csv
 │   ├── Toy_a_short_breed_list.txt
+│   ├── paper_14_breed_list.txt
 │   ├── X_train_SNP_WG_prune_v3_1_std_pca_100.csv
 │   ├── X_test_SNP_WG_prune_v3_1_std_pca_100.csv
 │   ├── y_combined_100.csv
@@ -26,6 +27,10 @@ DAP_breed_prediction/
 ├── notebooks/
 │   ├── reproduce_selected_paper_figures.ipynb
 │   └── tutorial_all_modes.ipynb
+├── model/
+│   ├── pca_model_WG_100.joblib          # Archived whole-genome PCA, first 100 PCs
+│   ├── regressor_model0_4-PCA100.pkl     # Archived 100-class random forest
+│   └── README.md                         # Model provenance and input requirements
 └── src/dap_breed_prediction/
     ├── cli.py                           # Mode parsing + orchestration
     ├── pipeline.py                      # Training/inference pipeline
@@ -91,7 +96,7 @@ Mode 6 uses these bundled files:
 - `data/X_test_SNP_WG_prune_v3_1_std_pca_100.csv`: fixed test samples represented by the same components
 - `data/y_combined_100.csv`: 100-class breed/admixture labels
 
-The separately bundled pretrained model in `model/` is not used by this command; Mode 6 trains a new model to reproduce the training and evaluation procedure.
+The separately bundled pretrained PCA and random-forest artifacts in `model/` are not used by this command; Mode 6 trains a new model to reproduce the training and evaluation procedure.
 
 ### 4. Verify The Results
 
@@ -137,6 +142,15 @@ python -m jupyter lab notebooks/reproduce_selected_paper_figures.ipynb
 
 The `figures` extra pins scikit-learn to the version used for the saved notebook execution. All inputs used by the notebook are bundled in `Figure_data/` or elsewhere in this repository, so a complete clone can reproduce every listed panel. No path configuration is needed when Jupyter is started from the repository root. Set `DAP_FIGURE_DATA` only to override the default `Figure_data/` location.
 
+### Archived Pretrained Artifacts
+
+The source paper artifacts are bundled for inspection and advanced workflows:
+
+- `model/regressor_model0_4-PCA100.pkl`: the archived 100-output random-forest model from `Dog_MAF0_4` (the repository copy is byte-for-byte identical to the source artifact).
+- `model/pca_model_WG_100.joblib`: the first 100 components of the archived whole-genome PCA transformer. The source transformer contained 1,000 components and was approximately 435 MB, above GitHub's normal per-file limit. The random forest only consumes the first 100 components, so the unused 900 components were removed. The trimmed transformer was checked against the fixed test PCs with a maximum absolute difference of `5.03e-12`.
+
+The archived PCA requires all 54,143 SNP values, already standardized and ordered according to its `feature_names_in_` attribute. The original per-chromosome standardization objects were not saved in `Dog_MAF0_4`; therefore these artifacts are not used as a plug-and-play raw-genotype inference path. Mode 1 instead trains a 100-output model using the standardized SNP columns available in the supplied CSV.
+
 ## Usage
 
 ### Python API
@@ -178,23 +192,39 @@ dap-breed-predict <mode flags> -config_path <path_to_config.yml>
 
 ## Modes
 
-### Mode 1: Predict With The Standard Breed Panel
+### Mode 1: General 100-Class Prediction
 
-**Designed for:** Predicting unlabeled dogs when the standard 14-breed panel used by the project is appropriate and no custom breed list is needed.
+**Designed for:** General inference on unlabeled dogs when their likely breed ancestry is not already narrowed to a small set.
 
-**What it does:** Selects the DAP reference dogs for the default breeds plus `Unknown`, trains a model using SNPs shared with the supplied genotype CSV, and predicts breed composition for those input dogs.
+**What it does:** Uses all 100 outputs in the bundled DAP label table (99 named breeds plus `Unknown`), trains a model using SNPs shared with the supplied genotype CSV, and predicts breed composition for the input dogs. Mode 1 trains this model for the SNPs available in the supplied CSV; it does not load the archived Mode 6 model.
 
 - Flags: `-inference`
 - Required config keys: `result_folder_path`, `SNP_csv_path`
+- Optional config keys: `pca_components` (default `0.95`), `random_state` (default `42`)
 
 ### Mode 2: Predict With A Custom Breed Panel
 
 **Designed for:** Predicting unlabeled dogs when the likely source breeds are known and the user wants a focused, custom set of output classes.
 
-**What it does:** Reads one breed per line from `breed_list_text_path`, selects matching DAP reference dogs, trains on SNPs shared with the supplied genotype CSV, and predicts the input dogs using that breed panel plus `Unknown`.
+**What it does:** Reads one breed per line from `breed_list_text_path`, selects matching DAP reference dogs, trains on SNPs shared with the supplied genotype CSV, and predicts the input dogs using that targeted output panel. Set `include_unknown: true` to append an `Unknown` output; the default is `true` when this key is omitted.
+
+The bundled Mode 2 template uses `data/paper_14_breed_list.txt` and `include_unknown: false`, producing an exact 14-output targeted model. These are the 14 breed outputs examined in the paper section **"Leveraging SNP importance scores to create small panels of informative variants"**:
+
+```text
+Australian Shepherd                 Beagle
+Bernese Mountain Dog                Border Collie
+Boston Terrier                      Cavalier King Charles Spaniel
+Dachshund                           French Bulldog
+German Shepherd Dog                 Golden Retriever
+Great Dane                          Labrador Retriever
+Pembroke Welsh Corgi                Poodle
+```
+
+The paper selected these outputs from its full 100-class model. Mode 2 instead retrains a focused model on the same 14-breed subset, so it is useful for targeted inference but is not an exact reproduction of the paper's fitted model or SNP-importance values. Use Mode 6 and the [executed figure notebook](notebooks/reproduce_selected_paper_figures.ipynb) for paper reproduction.
 
 - Flags: `-inference`
 - Required config keys: `result_folder_path`, `SNP_csv_path`, `breed_list_text_path`
+- Optional config keys: `include_unknown` (default `true`), `pca_components` (default `0.95`), `random_state` (default `42`)
 
 ### Mode 3: Evaluate Predictions Against Known Labels
 
@@ -204,7 +234,7 @@ dap-breed-predict <mode flags> -config_path <path_to_config.yml>
 
 - Flags: `-inference`
 - Required config keys: `result_folder_path`, `SNP_csv_path`, `label_path`
-- Optional config key: `breed_list_text_path`
+- Optional config keys: `breed_list_text_path`, `include_unknown` (default `true`), `pca_components` (default `0.95`), `random_state` (default `42`)
 
 ### Mode 4: Train And Test On Your Own Dataset
 
@@ -224,7 +254,7 @@ dap-breed-predict <mode flags> -config_path <path_to_config.yml>
 
 - Flags: `-train`
 - Required config keys: `result_folder_path`, `breed_list_text_path`
-- Optional config keys: `pca_components` (default `0.95`), `random_state` (default `42`), `test_size` (default `0.3`)
+- Optional config keys: `include_unknown` (default `true`), `pca_components` (default `0.95`), `random_state` (default `42`), `test_size` (default `0.3`)
 
 ### Mode 6: Reproduce The Paper Benchmark
 
@@ -251,6 +281,7 @@ Ready-to-edit templates are in `configs/`:
 - `SNP_csv_path` (CSV):
   - Must include a `dog_id` column.
   - SNP columns should be named like `chr<chromosome>:...`.
+  - SNP values must use the same standardization as the corresponding bundled DAP reference columns.
 - `label_path` (CSV):
   - Must include `dog_id` and `label`.
   - Label format:
@@ -258,6 +289,9 @@ Ready-to-edit templates are in `configs/`:
     - Mixed: `BreedA / BreedB`
 - `breed_list_text_path` (TXT):
   - One breed name per line.
+- `include_unknown` (boolean; Modes 2, 3, and 5):
+  - `true` appends the `Unknown` output to the classes in the breed list or labels.
+  - `false` keeps only the named classes; the bundled Mode 2 template uses this setting for its 14-breed model.
 
 ## Outputs
 

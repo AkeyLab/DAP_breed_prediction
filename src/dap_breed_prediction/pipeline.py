@@ -18,24 +18,38 @@ X_TRAIN_FILES = str(DATA_DIR / 'folder_of_54143_SNPs' / 'X_SNP_ch*_pruned_v3_std
 Y_TRAIN_FILE = str(DATA_DIR / 'y_combined_100.csv')
 X_TRAIN_PCA_REPRODUCE = str(DATA_DIR / 'X_train_SNP_WG_prune_v3_1_std_pca_100.csv')
 X_TEST_PCA_REPRODUCE = str(DATA_DIR / 'X_test_SNP_WG_prune_v3_1_std_pca_100.csv')
-DEFAULT_SELECTED_BREEDS = [ 'Australian Shepherd',
-                            'Beagle',
-                            'Bernese Mountain Dog',
-                            'Border Collie',
-                            'Boston Terrier',
-                            'Cavalier King Charles Spaniel',
-                            'Dachshund',
-                            'French Bulldog',
-                            'German Shepherd Dog',
-                            'Golden Retriever',
-                            'Great Dane',
-                            'Labrador Retriever',
-                            'Pembroke Welsh Corgi',
-                            'Poodle',
-                            ]
-# Backward-compatible alias.
-DEFAULT_SELECED_BREEDS = DEFAULT_SELECTED_BREEDS
+PAPER_14_BREEDS = [ 'Australian Shepherd',
+                    'Beagle',
+                    'Bernese Mountain Dog',
+                    'Border Collie',
+                    'Boston Terrier',
+                    'Cavalier King Charles Spaniel',
+                    'Dachshund',
+                    'French Bulldog',
+                    'German Shepherd Dog',
+                    'Golden Retriever',
+                    'Great Dane',
+                    'Labrador Retriever',
+                    'Pembroke Welsh Corgi',
+                    'Poodle',
+                    ]
+# Backward-compatible aliases for code that imported the former constant.
+DEFAULT_SELECTED_BREEDS = PAPER_14_BREEDS
+DEFAULT_SELECED_BREEDS = PAPER_14_BREEDS
 PCA_TRIGGER_PROPORTION = 0.35
+
+
+def get_all_breed_classes():
+    """Return all 100 output classes in the label-table column order."""
+    return list(pd.read_csv(Y_TRAIN_FILE, index_col='dog_id', nrows=0).columns)
+
+
+def configure_unknown_class(selected_breeds, include_unknown):
+    """Return a copied class list with the requested Unknown-class behavior."""
+    selected_breeds = [breed for breed in selected_breeds if breed != 'Unknown']
+    if include_unknown:
+        selected_breeds.append('Unknown')
+    return selected_breeds
 
 def apply_pca(  X_train,
                 result_folder_path,
@@ -119,6 +133,7 @@ def train(  result_folder_path,
             pca_components = None, # training param
             random_state = 42,
             pure_only = False, 
+            include_unknown = True,
             force_recomputation = False
             ):
     # if the prediction model exists
@@ -150,7 +165,7 @@ def train(  result_folder_path,
                 breed_set.update(parts) 
             selected_breeds = list(breed_set)
         else: # mode 1
-            selected_breeds = DEFAULT_SELECTED_BREEDS # 14 pure breeds
+            selected_breeds = None
 
     # construction DAP training data: mode 1, 2, 3, 5 
 
@@ -159,9 +174,11 @@ def train(  result_folder_path,
     Y_train.index = Y_train.index.astype(str)
     Y_train.sort_index(inplace=True)
 
+    if selected_breeds is None:
+        selected_breeds = list(Y_train.columns)
+
     if pure_only is False:
-        if 'Unknown' not in selected_breeds:
-            selected_breeds.append('Unknown')
+        selected_breeds = configure_unknown_class(selected_breeds, include_unknown)
         selected =  Y_train[selected_breeds].sum(axis=1) > 0
         not_others =  Y_train.drop(columns=selected_breeds).sum(axis=1) == 0
         Y_train =  Y_train[selected & not_others]
@@ -276,6 +293,7 @@ def inference(  result_folder_path,
                 pca_components = None, # training param
                 random_state = 42,
                 pure_only = False, 
+                include_unknown = True,
                 force_recomputation = False
                 ):
 
@@ -295,10 +313,10 @@ def inference(  result_folder_path,
             breed_set.update(parts) 
         selected_breeds = list(breed_set)    
     else:
-        selected_breeds = DEFAULT_SELECTED_BREEDS
+        selected_breeds = get_all_breed_classes()
     
-    if pure_only is False and 'Unknown' not in selected_breeds:
-        selected_breeds.append('Unknown')
+    if pure_only is False:
+        selected_breeds = configure_unknown_class(selected_breeds, include_unknown)
 
     logger.info(f'Inference(): There are {len(selected_breeds)} (m) pure breed classes.')
     
@@ -412,7 +430,8 @@ def full_training_pipeline( result_folder_path,
                             pca_components = None, # training param
                             random_state = 42,
                             test_size = 0.3,
-                            pure_only = False):
+                            pure_only = False,
+                            include_unknown = True):
     # Mode 4: X and Y must be provided
     # Mode 5: breed list must be provided
     # Mode 6: breed list must be passed as "reproduce"
@@ -448,8 +467,7 @@ def full_training_pipeline( result_folder_path,
             Y.index = Y.index.astype(str)
             Y.sort_index(inplace=True)
             if pure_only is False:
-                if 'Unknown' not in selected_breeds:
-                    selected_breeds.append('Unknown')
+                selected_breeds = configure_unknown_class(selected_breeds, include_unknown)
                 selected =  Y[selected_breeds].sum(axis=1) > 0
                 not_others =  Y.drop(columns=selected_breeds).sum(axis=1) == 0
                 Y =  Y[selected & not_others]

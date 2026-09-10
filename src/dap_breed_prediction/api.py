@@ -113,6 +113,7 @@ def run_mode(mode, config, *, base_dir=None, configure_logging=True):
     pca_components = resolved.get("pca_components", 0.95)
     random_state = resolved.get("random_state", 42)
     test_size = resolved.get("test_size", 0.3)
+    include_unknown = resolved.get("include_unknown", True)
 
     if mode == 1:
         _require(resolved, mode, "SNP_csv_path")
@@ -121,6 +122,7 @@ def run_mode(mode, config, *, base_dir=None, configure_logging=True):
             "SNP_csv_path": snp_csv_path,
             "pca_components": pca_components,
             "random_state": random_state,
+            "include_unknown": True,
         }
         pipeline.train(**input_args)
         pipeline.inference(**input_args)
@@ -132,6 +134,7 @@ def run_mode(mode, config, *, base_dir=None, configure_logging=True):
             "breed_list_text_path": breed_list_text_path,
             "pca_components": pca_components,
             "random_state": random_state,
+            "include_unknown": include_unknown,
         }
         pipeline.train(**input_args)
         pipeline.inference(**input_args)
@@ -144,6 +147,7 @@ def run_mode(mode, config, *, base_dir=None, configure_logging=True):
             "breed_list_text_path": breed_list_text_path,
             "pca_components": pca_components,
             "random_state": random_state,
+            "include_unknown": include_unknown,
         }
         pipeline.train(**input_args)
         pipeline.inference(**input_args)
@@ -166,6 +170,7 @@ def run_mode(mode, config, *, base_dir=None, configure_logging=True):
             pca_components=pca_components,
             random_state=random_state,
             test_size=test_size,
+            include_unknown=include_unknown,
         )
     else:
         pipeline.full_training_pipeline(

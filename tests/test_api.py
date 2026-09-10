@@ -25,6 +25,7 @@ class RunModeTests(unittest.TestCase):
             "pca_components": 0.9,
             "random_state": 7,
             "test_size": 0.25,
+            "include_unknown": False,
         }
         config.update(updates)
         return config
@@ -49,12 +50,15 @@ class RunModeTests(unittest.TestCase):
                 if mode == 1:
                     self.assertNotIn("label_path", kwargs)
                     self.assertNotIn("breed_list_text_path", kwargs)
+                    self.assertTrue(kwargs["include_unknown"])
                 elif mode == 2:
                     self.assertNotIn("label_path", kwargs)
                     self.assertEqual(kwargs["breed_list_text_path"], str(self.base_dir / "data/breeds.txt"))
+                    self.assertFalse(kwargs["include_unknown"])
                 else:
                     self.assertEqual(kwargs["label_path"], str(self.base_dir / "data/labels.csv"))
                     self.assertEqual(kwargs["breed_list_text_path"], str(self.base_dir / "data/breeds.txt"))
+                    self.assertFalse(kwargs["include_unknown"])
 
     @patch("dap_breed_prediction.api.pipeline.full_training_pipeline")
     def test_modes_4_to_6_dispatch_full_pipeline(self, full_training_pipeline):
@@ -75,6 +79,10 @@ class RunModeTests(unittest.TestCase):
                 full_training_pipeline.assert_called_once()
                 kwargs = full_training_pipeline.call_args.kwargs
                 self.assertTrue(expected[mode].issubset(kwargs))
+                if mode == 4:
+                    self.assertNotIn("include_unknown", kwargs)
+                if mode == 5:
+                    self.assertFalse(kwargs["include_unknown"])
                 if mode == 6:
                     self.assertEqual(kwargs["breed_list_text_path"], "reproduce")
                     self.assertEqual(kwargs["pca_components"], 100)
