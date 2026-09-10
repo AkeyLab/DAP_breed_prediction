@@ -1,108 +1,203 @@
 # DAP Breed Prediction
 
-Code and data package for dog breed prediction/admixture estimation used in the DAP paper workflows: "***An interpretable machine learning framework for dog breed inference and ancestry decomposition***".
+Code, models, and processed data for dog breed prediction and ancestry decomposition from the paper **"An interpretable machine learning framework for dog breed inference and ancestry decomposition."**
 
-## Start Here: Jupyter Tutorial
+## Start With The Tutorial
 
-**New users should begin with the [standalone all-modes tutorial notebook](notebooks/tutorial_all_modes.ipynb).** It covers installation, input formats, safe inspection of the bundled Parquet files, Python API and CLI examples for every mode, and output inspection. The notebook includes saved logs and predictions from executable one-dog Mode 1 and Mode 2 examples; the remaining model-training modes are disabled by default. Set `RUN_MODES = set()` in the notebook to inspect the saved outputs without retraining either example.
+**First-time users should open the [executed Jupyter tutorial](notebooks/tutorial_all_modes.ipynb).** It demonstrates installation, CSV and Parquet inspection, Python API calls, CLI commands, all five modes, and output inspection. Saved Mode 1 and Mode 2 logs and predictions can be viewed directly on GitHub without running the notebook.
+
+The package supports both interfaces:
+
+```python
+from dap_breed_prediction import run_mode
+
+run_mode(1, "configs/config_mode_1_template.yml")
+```
+
+```bash
+python main.py -inference -config_path configs/config_mode_1_template.yml
+```
 
 ## Repository Layout
 
 ```text
 DAP_breed_prediction/
-├── main.py                              # CLI entrypoint
-├── pyproject.toml                       # Package metadata
-├── requirements.txt                     # Dependency list
-├── configs/                             # YAML config templates for modes 1-6
-├── Figure_data/                          # Inputs for the executed figure notebook
-├── data/                                # Toy data + reproduction assets
-│   ├── Toy_X_snps.csv
-│   ├── Toy_X_single.csv                 # One-row extract for Modes 1 and 2
+├── main.py
+├── pyproject.toml
+├── requirements.txt
+├── configs/                             # YAML templates for Modes 1-5
+├── Figure_data/                         # Inputs for the executed figure notebook
+├── data/
+│   ├── Toy_X_full_54143_single.csv      # One full-length Mode 1 sample
+│   ├── Toy_X_single.csv                 # One 266-SNP Mode 2/3 sample
+│   ├── Toy_X_snps.csv                   # Labeled Mode 4 toy genotypes
 │   ├── Toy_Y_labels.csv
 │   ├── Toy_a_short_breed_list.txt
 │   ├── paper_14_breed_list.txt
 │   ├── X_train_SNP_WG_prune_v3_1_std_pca_100.csv
 │   ├── X_test_SNP_WG_prune_v3_1_std_pca_100.csv
 │   ├── y_combined_100.csv
-│   └── folder_of_54143_SNPs/            # Chromosome-wise DAP SNP matrices
-├── notebooks/
-│   ├── reproduce_selected_paper_figures.ipynb
-│   └── tutorial_all_modes.ipynb
+│   └── folder_of_54143_SNPs/            # 38 processed DAP genotype Parquets
 ├── model/
-│   ├── pca_model_WG_100.joblib          # Archived whole-genome PCA, first 100 PCs
-│   ├── regressor_model0_4-PCA100.pkl     # Archived 100-class random forest
-│   └── README.md                         # Model provenance and input requirements
+│   ├── pca_model_WG_100.joblib
+│   ├── regressor_model0_4-PCA100.pkl
+│   └── README.md
+├── notebooks/
+│   ├── tutorial_all_modes.ipynb
+│   └── reproduce_selected_paper_figures.ipynb
 └── src/dap_breed_prediction/
-    ├── cli.py                           # Mode parsing + orchestration
-    ├── pipeline.py                      # Training/inference pipeline
-    ├── helpers.py                       # Metrics, plotting, data split helpers
-    └── analysis.py                      # SNP importance analysis
+    ├── api.py
+    ├── cli.py
+    ├── pipeline.py
+    ├── helpers.py
+    └── analysis.py
 ```
 
 ## Installation
 
-```bash
-pip install -r requirements.txt
-```
-
-Optional editable install (enables the `dap-breed-predict` command):
-
-```bash
-pip install -e .
-```
-
-## Hardware And Runtime
-
-- No non-standard hardware is required; CPU-only execution is sufficient.
-- Typical install time: Typically <5 minutes on a normal desktop with internet access.
-- Expected Mode 4 smoke-test runtime: Typically <1 minute after dependencies are installed.
-- Expected Mode 1/2 notebook runtime: Approximately 2 minutes for both one-dog examples on the reference system; runtime varies with available CPU resources.
-
-## Reproduce The Paper Results
-
-Mode 6 reproduces the paper's 100-class breed-prediction experiment. It trains a new random-forest model with the paper settings (`100` PCA components and random seed `42`), selects the pure-versus-mixed prediction threshold on the training set, and evaluates the model on the fixed test set.
-
-The required PCA-space data and labels are included in this repository. Mode 6 does **not** read the chromosome-wise Parquet files used by Modes 1, 2, 3, and 5.
-
-### 1. Clone The Repository
+Python 3.9 or newer is required.
 
 ```bash
 git clone https://github.com/AkeyLab/DAP_breed_prediction.git
 cd DAP_breed_prediction
-```
 
-### 2. Create An Environment And Install Dependencies
-
-Python `3.9` or newer is required. A virtual environment is recommended:
-
-```bash
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
+python -m pip install -e .
 ```
 
-### 3. Run The Reproduction
-
-From the repository root, run:
+Install Jupyter for the tutorial:
 
 ```bash
-python main.py -reproduce -config_path configs/config_mode_6_template.yml
+python -m pip install -e ".[tutorial]"
+python -m jupyter lab notebooks/tutorial_all_modes.ipynb
 ```
 
-No configuration changes are needed for a first run. The supplied config writes results to `results/mode_6/`. Training is CPU-only and takes approximately 4-5 minutes on the system used for the reference run; runtime will vary with CPU resources.
+Use `python -m pip install -r requirements.txt` instead if an editable package installation is not wanted.
 
-Mode 6 uses these bundled files:
+No GPU or other non-standard hardware is required. Modes 1, 3, and the toy Mode 4 example normally finish in under one minute. DAP-backed Mode 2 and paper-reproduction Mode 5 take longer and depend on available CPU and memory.
 
-- `data/X_train_SNP_WG_prune_v3_1_std_pca_100.csv`: training samples represented by 100 principal components
-- `data/X_test_SNP_WG_prune_v3_1_std_pca_100.csv`: fixed test samples represented by the same components
-- `data/y_combined_100.csv`: 100-class breed/admixture labels
+## Modes At A Glance
 
-The separately bundled pretrained PCA and random-forest artifacts in `model/` are not used by this command; Mode 6 trains a new model to reproduce the training and evaluation procedure.
+| Mode | Purpose | CLI flags | Uses DAP reference data? |
+|---|---|---|---|
+| 1 | Single-sample prediction with the bundled 100-output PCA/random-forest model | `-inference` | No |
+| 2 | Retrain on all eligible DAP reference dogs, then predict supplied sample(s) | `-train -inference` | Yes |
+| 3 | Test a saved model on multiple new samples, with optional labels and metrics | `-inference` | No |
+| 4 | Train and evaluate a new model using only user-provided genotypes and labels | `-train` | No |
+| 5 | Reproduce the fixed 100-class paper benchmark | `-reproduce` | Uses bundled fixed PC matrices |
 
-### 4. Verify The Results
+Modes 1 and 3 share `-inference`. The presence of `prediction_model_path` in the YAML selects Mode 3; without that key, the CLI selects Mode 1.
 
-A successful reference run reports:
+## Mode 1: Pretrained Single-Sample Prediction
+
+**Designed for:** Predicting one dog's ancestry across the complete 100-output panel without retraining.
+
+Mode 1 loads both bundled paper artifacts:
+
+- `model/pca_model_WG_100.joblib`
+- `model/regressor_model0_4-PCA100.pkl`
+
+The input must contain exactly one row, a `dog_id` column, and the complete 54,143-SNP feature set expected by the PCA. Columns may arrive in a different order because the package validates and reorders them by name. Missing or additional SNPs are rejected. Values must already use the training-only chromosome-wise standardization used for the paper model; raw `0/1/2` genotype calls are not valid because the original fitted SNP scalers were not retained.
+
+The bundled `data/Toy_X_full_54143_single.csv` is a compatible one-row example. It is dog `109622` from the DAP training partition and is provided as an interface test, not as independent validation data.
+
+```bash
+python main.py -inference -config_path configs/config_mode_1_template.yml
+```
+
+Required config keys: `result_folder_path`, `SNP_csv_path`.
+
+Optional config key: `pure_threshold` (default `0.7`). Mode 1 always uses the bundled PCA and random forest.
+
+The default example predicts `Australian Shepherd` with a maximum raw score of `0.965`.
+
+## Mode 2: DAP-Backed Retraining And Prediction
+
+**Designed for:** Retraining a model against DAP when the new assay has only a subset of the paper SNPs and, optionally, only selected output classes are relevant.
+
+Mode 2 performs the following operations:
+
+1. Loads the complete bundled DAP reference label table and all 38 standardized chromosome Parquets.
+2. Combines all eligible labeled DAP samples rather than preserving the paper train/test split.
+3. Finds the ordered overlap `X'` between SNP columns in the supplied `SNP_csv_path` and the 54,143 DAP SNPs.
+4. Uses all 100 output classes unless `breed_list_text_path` supplies a subset of classes, one per line.
+5. Trains a random forest, plus a scaler and PCA when the feature-to-sample ratio triggers PCA.
+6. Saves every fitted artifact, the exact SNP/class schema, and the purity threshold.
+7. Predicts the supplied sample row or rows with the newly trained model.
+
+The process log prints the full DAP dimensions, selected sample and class counts, selected class names, requested SNP count, and overlap size. The bundled DAP label table contains 6,572 labeled dogs and 100 outputs; the original metadata filtering stage retained 7,618 dogs before label availability and downstream filtering.
+
+```bash
+python main.py -train -inference -config_path configs/config_mode_2_template.yml
+```
+
+Required config keys: `result_folder_path`, `SNP_csv_path`.
+
+Optional config keys: `breed_list_text_path`, `include_unknown` (default `true`), `pure_threshold` (default `0.7`), `pca_components` (default `0.95`), `random_state` (default `42`).
+
+The template uses `data/Toy_X_single.csv`, which is one row copied from `data/Toy_X_snps.csv` and contains 266 SNPs. It also uses the following 14 outputs from the paper section **"Leveraging SNP importance scores to create small panels of informative variants"**:
+
+```text
+Australian Shepherd                 Beagle
+Bernese Mountain Dog                Border Collie
+Boston Terrier                      Cavalier King Charles Spaniel
+Dachshund                           French Bulldog
+German Shepherd Dog                 Golden Retriever
+Great Dane                          Labrador Retriever
+Pembroke Welsh Corgi                Poodle
+```
+
+Remove `breed_list_text_path` from the YAML to retrain all 100 outputs. The toy dog is part of DAP, so this run demonstrates the workflow but is not an independent performance estimate.
+
+## Mode 3: Saved-Model Prediction Or Performance Analysis
+
+**Designed for:** Multi-sample prediction with a model produced by Mode 2 or Mode 4, or performance analysis when labels are also available.
+
+Mode 3 does not train a model and does not load DAP reference genotypes. Supply the random-forest path, its purity threshold, its `model_metadata.json` sidecar, and a new genotype CSV. The genotype columns must match the exact SNP set recorded in the metadata; columns are reordered safely when names match, while missing or extra SNPs produce an error. The metadata also locates any saved scaler and PCA.
+
+When `label_path` is omitted, Mode 3 writes predictions only. When labels are provided, it also calculates strict and loose accuracy and writes per-sample, per-section, and per-class results plus a confusion map.
+
+```bash
+# First create the template model used by this example.
+python main.py -train -inference -config_path configs/config_mode_2_template.yml
+
+# Then test that saved model.
+python main.py -inference -config_path configs/config_mode_3_template.yml
+```
+
+Required config keys: `result_folder_path`, `SNP_csv_path`, `prediction_model_path`, `pure_threshold`.
+
+Optional config keys: `model_metadata_path` (automatically sought beside the model), `scaler_path`, `pca_model_path`, `label_path`.
+
+The label CSV must contain `dog_id` and `label`. Use `BreedName` for a pure dog and `BreedA / BreedB` for a two-breed mix.
+
+## Mode 4: Train On User Data Only
+
+**Designed for:** Training and evaluating the framework on a user-owned labeled dataset with no DAP data involved.
+
+Mode 4 reads the supplied X and Y files, creates a train/test split, optionally standardizes and applies PCA, trains a random forest, selects a purity threshold on the training split, and evaluates the held-out split. It saves the fitted model, optional scaler/PCA, and `model_metadata.json`, so the resulting model can be used directly by Mode 3.
+
+```bash
+python main.py -train -config_path configs/config_mode_4_template.yml
+```
+
+Required config keys: `result_folder_path`, `SNP_csv_path`, `label_path`.
+
+Optional config keys: `breed_list_text_path`, `pca_components` (default `0.95` when PCA is triggered), `random_state` (default `42`), `test_size` (default `0.3`).
+
+## Mode 5: Reproduce The Paper Benchmark
+
+**Designed for:** Reproducing the fixed 100-class paper training and test experiment, not analyzing new samples.
+
+Mode 5 trains a new 100-output random forest with random seed `42` from the bundled 100-PC training matrix, chooses the pure-versus-mixed threshold on the training set, and evaluates the fixed test matrix. It does not load the pretrained Mode 1 random forest and does not read the 38 chromosome Parquets.
+
+```bash
+python main.py -reproduce -config_path configs/config_mode_5_template.yml
+```
+
+The reference run reports:
 
 ```text
 Best purity threshold (theta) is 0.7.
@@ -111,53 +206,40 @@ Loose Accuracy: 91.71%
 Number of Wrong Samples - Strict: 818, Loose: 164
 ```
 
-Strict accuracy requires the complete pure/mixed breed assignment to match. Loose accuracy counts a prediction as correct when at least one predicted breed overlaps the true assignment. Small numerical differences may occur across operating systems or dependency versions.
+Small numerical differences may occur across dependency versions and platforms. Strict accuracy requires the full pure/mixed assignment to match; loose accuracy requires at least one predicted breed to overlap the label.
 
-The run creates:
+Mode 5 uses:
 
-```text
-results/mode_6/
-├── process.log
-├── Model/
-│   └── Prediction_model_theta_0.7.pkl
-├── Table/
-│   ├── Raw_prediction.csv
-│   ├── Transformed_prediction.csv
-│   ├── Predictions.csv
-│   ├── Per_section_performance.csv
-│   └── Per_class_prediction_details.csv
-└── Figure/
-```
+- `data/X_train_SNP_WG_prune_v3_1_std_pca_100.csv`
+- `data/X_test_SNP_WG_prune_v3_1_std_pca_100.csv`
+- `data/y_combined_100.csv`
 
-Check `results/mode_6/process.log` for the parameters, threshold, and summary metrics from the run. To perform another independent clean run, copy `configs/config_mode_6_template.yml`, change `result_folder_path` to a new directory, and run the command with the copied config.
+Training is CPU-only and took approximately 4-5 minutes on the reference system.
 
-### Executed Figure Notebook
+## Reproduce The Paper Figures
 
-[View the executed notebook](notebooks/reproduce_selected_paper_figures.ipynb) to inspect the calculations and embedded outputs for Fig. 2b, Fig. 2c, Fig. 2e, Fig. 3b, Fig. 3c, Fig. 3d, Fig. 3e, Fig. 3f, and Fig. 3h. The notebook uses the archived 10-class model for Fig. 2c and does not retrain it. Plot outputs are retained inside the notebook; no separate figure files are created.
-
-GitHub renders the saved outputs without requiring any setup. To execute the notebook locally, install the optional figure dependencies and launch Jupyter from the repository root:
+The [executed figure notebook](notebooks/reproduce_selected_paper_figures.ipynb) contains the calculations and saved outputs for Fig. 2b, Fig. 2c, Fig. 2e, Fig. 3b, Fig. 3c, Fig. 3d, Fig. 3e, Fig. 3f, and Fig. 3h. It uses the archived 10-class small model for Fig. 2c and does not retrain that model. Required inputs are under `Figure_data/` or elsewhere in the repository.
 
 ```bash
 python -m pip install -e ".[figures]"
 python -m jupyter lab notebooks/reproduce_selected_paper_figures.ipynb
 ```
 
-The `figures` extra pins scikit-learn to the version used for the saved notebook execution. All inputs used by the notebook are bundled in `Figure_data/` or elsewhere in this repository, so a complete clone can reproduce every listed panel. No path configuration is needed when Jupyter is started from the repository root. Set `DAP_FIGURE_DATA` only to override the default `Figure_data/` location.
+GitHub displays all saved notebook outputs. Set `DAP_FIGURE_DATA` only when overriding the default `Figure_data/` directory.
 
-### Archived Pretrained Artifacts
+## Configuration Templates
 
-The source paper artifacts are bundled for inspection and advanced workflows:
+- `configs/config_mode_1_template.yml`
+- `configs/config_mode_2_template.yml`
+- `configs/config_mode_3_template.yml`
+- `configs/config_mode_4_template.yml`
+- `configs/config_mode_5_template.yml`
 
-- `model/regressor_model0_4-PCA100.pkl`: the archived 100-output random-forest model from `Dog_MAF0_4` (the repository copy is byte-for-byte identical to the source artifact).
-- `model/pca_model_WG_100.joblib`: the first 100 components of the archived whole-genome PCA transformer. The source transformer contained 1,000 components and was approximately 435 MB, above GitHub's normal per-file limit. The random forest only consumes the first 100 components, so the unused 900 components were removed. The trimmed transformer was checked against the fixed test PCs with a maximum absolute difference of `5.03e-12`.
+Relative paths in a YAML file are resolved from the current working directory. Run commands from the repository root unless absolute paths are used.
 
-The archived PCA requires all 54,143 SNP values, already standardized and ordered according to its `feature_names_in_` attribute. The original per-chromosome standardization objects were not saved in `Dog_MAF0_4`; therefore these artifacts are not used as a plug-and-play raw-genotype inference path. Mode 1 instead trains a 100-output model using the standardized SNP columns available in the supplied CSV.
+## Python API
 
-## Usage
-
-### Python API
-
-The package can be called directly from Python or a Jupyter notebook with a configuration dictionary:
+Every mode is callable from Python or Jupyter with a configuration mapping or YAML path:
 
 ```python
 from pathlib import Path
@@ -176,170 +258,50 @@ config = {
 result_directory = run_mode(4, config, base_dir=Path.cwd())
 ```
 
-`config` can also be a path to one of the bundled YAML files. `base_dir` controls how relative configuration paths are resolved and defaults to the current working directory.
+`base_dir` controls relative path resolution and defaults to the current working directory.
 
-### CLI
+## Output Files
 
-Run from repository root:
+Every mode writes `process.log`, `Table/`, `Model/`, and `Figure/` under `result_folder_path`.
 
-```bash
-python main.py <mode flags> -config_path <path_to_config.yml>
-```
+Common prediction tables:
 
-Or, if installed with `pip install -e .`:
+- `Table/Raw_prediction.csv`: one score per model output
+- `Table/Transformed_prediction.csv`: thresholded pure or two-breed assignments
+- `Table/Predictions.csv`: readable breed labels
 
-```bash
-dap-breed-predict <mode flags> -config_path <path_to_config.yml>
-```
+Mode 2 additionally writes:
 
-## Modes
+- `Model/Prediction_model_theta_<value>.pkl`
+- `Model/model_metadata.json`
+- `Model/scaler.joblib` and `Model/pca.joblib` when PCA is used
+- `Table/Overlapping_SNPs.txt`
+- `Table/Selected_classes.txt`
+- SNP-importance tables and figures
 
-### Mode 1: General 100-Class Prediction
+Mode 3 with labels and Mode 4 additionally write performance tables, including `Table/Performance_metrics.csv` with strict and loose accuracy.
 
-**Designed for:** General inference on unlabeled dogs when their likely breed ancestry is not already narrowed to a small set.
+Only load pickle or Joblib model files from trusted sources because deserialization can execute arbitrary code.
 
-**What it does:** Uses all 100 outputs in the bundled DAP label table (99 named breeds plus `Unknown`), trains a model using SNPs shared with the supplied genotype CSV, and predicts breed composition for the input dogs. Mode 1 trains this model for the SNPs available in the supplied CSV; it does not load the archived Mode 6 model.
+## Bundled DAP Reference Data
 
-The bundled configuration uses `data/Toy_X_single.csv`, which is the exact row for dog `109622` extracted from `data/Toy_X_snps.csv`. It contains 266 SNPs: seven demonstration SNPs from each of the 38 autosomes. This keeps the tutorial runtime manageable, but it is not an independent validation sample or a production SNP panel.
-
-Modes 1 and 2 retrain a model using the SNP columns in the input CSV that overlap the 54,143 bundled DAP SNPs, so their input does not have to contain all 54,143 columns. Real inference should use as many consistently standardized, overlapping SNPs as possible. In contrast, direct use of the archived PCA and random-forest artifacts requires all 54,143 standardized SNPs in the exact training order. The executed one-row prediction and inference log are saved in the [tutorial notebook](notebooks/tutorial_all_modes.ipynb).
-
-- Flags: `-inference`
-- Required config keys: `result_folder_path`, `SNP_csv_path`
-- Optional config keys: `pure_threshold` (default `0.7`), `pca_components` (default `0.95`), `random_state` (default `42`)
-
-### Mode 2: Predict With A Custom Breed Panel
-
-**Designed for:** Predicting unlabeled dogs when the likely source breeds are known and the user wants a focused, custom set of output classes.
-
-**What it does:** Reads one breed per line from `breed_list_text_path`, selects matching DAP reference dogs, trains on SNPs shared with the supplied genotype CSV, and predicts the input dogs using that targeted output panel. Set `include_unknown: true` to append an `Unknown` output; the default is `true` when this key is omitted.
-
-The bundled Mode 2 template uses `data/paper_14_breed_list.txt` and `include_unknown: false`, producing an exact 14-output targeted model. These are the 14 breed outputs examined in the paper section **"Leveraging SNP importance scores to create small panels of informative variants"**:
-
-```text
-Australian Shepherd                 Beagle
-Bernese Mountain Dog                Border Collie
-Boston Terrier                      Cavalier King Charles Spaniel
-Dachshund                           French Bulldog
-German Shepherd Dog                 Golden Retriever
-Great Dane                          Labrador Retriever
-Pembroke Welsh Corgi                Poodle
-```
-
-The paper selected these outputs from its full 100-class model. Mode 2 instead retrains a focused model on the same 14-breed subset, so it is useful for targeted inference but is not an exact reproduction of the paper's fitted model or SNP-importance values. Use Mode 6 and the [executed figure notebook](notebooks/reproduce_selected_paper_figures.ipynb) for paper reproduction.
-
-The bundled configuration uses the same `data/Toy_X_single.csv` one-dog input as Mode 1. Its executed 14-class prediction and inference log are saved in the [tutorial notebook](notebooks/tutorial_all_modes.ipynb).
-
-- Flags: `-inference`
-- Required config keys: `result_folder_path`, `SNP_csv_path`, `breed_list_text_path`
-- Optional config keys: `include_unknown` (default `true`), `pure_threshold` (default `0.7`), `pca_components` (default `0.95`), `random_state` (default `42`)
-
-### Mode 3: Evaluate Predictions Against Known Labels
-
-**Designed for:** Benchmarking performance on a labeled validation dataset rather than only generating predictions.
-
-**What it does:** Trains from DAP reference dogs, predicts the supplied genotype CSV, compares predictions with `label_path`, and reports strict/loose accuracy plus per-class and confusion-map results. If a breed list is provided, it defines the classes; otherwise classes are inferred from the labels.
-
-- Flags: `-inference`
-- Required config keys: `result_folder_path`, `SNP_csv_path`, `label_path`
-- Optional config keys: `breed_list_text_path`, `include_unknown` (default `true`), `pca_components` (default `0.95`), `random_state` (default `42`)
-
-### Mode 4: Train And Test On Your Own Dataset
-
-**Designed for:** Developing or testing a model entirely from a user-provided labeled dataset, without using the bundled DAP reference genotypes.
-
-**What it does:** Splits the supplied genotype CSV and labels into training and test sets, optionally applies PCA, trains a model, and evaluates held-out samples. This is the fastest introductory workflow with the bundled toy files.
-
-- Flags: `-train -inference`
-- Required config keys: `result_folder_path`, `SNP_csv_path`, `label_path`
-- Optional config keys: `breed_list_text_path`, `pca_components` (default `0.95`), `random_state` (default `42`), `test_size` (default `0.3`)
-
-### Mode 5: Train A Reusable Model From The Full DAP Panel
-
-**Designed for:** Building a new reference model for a chosen breed panel when immediate prediction of an external CSV is not required.
-
-**What it does:** Loads all 38 bundled chromosome Parquet files, selects DAP dogs matching the requested breeds, performs a train/test split, applies PCA when needed, and writes the trained model and evaluation outputs. This is the most memory-intensive mode because it can read all 54,143 SNPs.
-
-- Flags: `-train`
-- Required config keys: `result_folder_path`, `breed_list_text_path`
-- Optional config keys: `include_unknown` (default `true`), `pca_components` (default `0.95`), `random_state` (default `42`), `test_size` (default `0.3`)
-
-### Mode 6: Reproduce The Paper Benchmark
-
-**Designed for:** Reproducing the paper's fixed 100-class breed-prediction experiment rather than analyzing new samples.
-
-**What it does:** Uses the bundled 100-PC training and test matrices, trains a new random forest with the paper settings, selects the pure/mixed threshold on the training set, and evaluates the fixed test set. It does not read the chromosome Parquet files. See [Reproduce The Paper Results](#reproduce-the-paper-results) for expected metrics.
-
-- Flags: `-reproduce`
-- Required config key: `result_folder_path`
-
-## Config Templates
-
-Ready-to-edit templates are in `configs/`:
-
-- `config_mode_1_template.yml`
-- `config_mode_2_template.yml`
-- `config_mode_3_template.yml`
-- `config_mode_4_template.yml`
-- `config_mode_5_template.yml`
-- `config_mode_6_template.yml`
-
-## Input File Expectations
-
-- `SNP_csv_path` (CSV):
-  - Must include a `dog_id` column.
-  - SNP columns should be named like `chr<chromosome>:...`.
-  - SNP values must use the same standardization as the corresponding bundled DAP reference columns.
-- `label_path` (CSV):
-  - Must include `dog_id` and `label`.
-  - Label format:
-    - Pure: `BreedName`
-    - Mixed: `BreedA / BreedB`
-- `breed_list_text_path` (TXT):
-  - One breed name per line.
-- `include_unknown` (boolean; Modes 2, 3, and 5):
-  - `true` appends the `Unknown` output to the classes in the breed list or labels.
-  - `false` keeps only the named classes; the bundled Mode 2 template uses this setting for its 14-breed model.
-- `pure_threshold` (number from `0` to `1`; Modes 1, 2, and optionally 3):
-  - A maximum raw breed score above this threshold is reported as pure; otherwise the two highest-scoring breeds are each assigned `0.5`.
-  - Modes 1 and 2 default to `0.7`. Set another value in the YAML configuration to override it. Mode 3 retains training-based threshold selection when the setting is omitted or `null`.
-
-## Outputs
-
-Each run writes to `<result_folder_path>/`:
-
-- `process.log`
-- `Model/`:
-  - `Prediction_model_theta_<value>.pkl`
-  - optional `scaler.joblib`, `pca.joblib`
-- `Table/`:
-  - `Raw_prediction.csv`
-  - `Transformed_prediction.csv`
-  - `Predictions.csv`
-  - optional per-section/per-class performance tables
-  - optional SNP-importance tables
-- `Figure/`:
-  - optional prediction map and SNP-importance SVGs
-
-## Bundled DAP Data for Modes 1/2/3/5
-
-Modes `1/2/3/5` require chromosome-wise DAP SNP parquet files at:
+Only Mode 2 reads the processed chromosome-wise DAP reference matrices:
 
 ```text
 data/folder_of_54143_SNPs/X_SNP_ch*_pruned_v3_std.parquet
 ```
 
-The 38 required Parquet files, one for each autosome, are bundled at that path. A complete repository clone therefore contains the DAP training matrices expected by these modes.
+All 38 autosomal Parquet files are included in the repository. A complete clone therefore contains the processed DAP inputs required by Mode 2. The original DAP VCF and metadata are not distributed.
 
 ## Preparing DAP Genotypes From VCF
 
-This section documents how the chromosome-wise Parquet matrices used by the project were derived from the DAP 2023 genotype data. These steps are only needed when rebuilding the inputs from the original VCF; the repository already contains the processed Parquet files required by its standard workflows.
+This section documents how the chromosome-wise Parquet matrices were derived from the DAP 2023 genotype data. These steps are needed only to rebuild the processed reference inputs; the standard package workflows use the files already included in the repository.
 
-The source DAP metadata and whole-genome VCF are not distributed in this repository. Access to Dog Aging Project Curated Data must be requested through the [DAP Data Access page](https://dogagingproject.org/data-access/). Applicants must receive approval and sign an individual Data Use Agreement before accessing the data through Terra. Access to the specific DAP 2023 files used below depends on their availability in the approved data release.
+Access to Dog Aging Project Curated Data must be requested through the [DAP Data Access page](https://dogagingproject.org/data-access/). Applicants must receive approval and sign an individual Data Use Agreement before accessing data through Terra. Availability of the specific DAP 2023 release files depends on the approved workspace.
 
-The historical analysis started from a pre-generated PLINK binary dataset (`.bed`, `.bim`, and `.fam`). The exact command that created it was not retained. Step 1 is therefore a reconstruction based on the source filename and recorded filters, not a guaranteed byte-for-byte reconstruction. If the original PLINK files are available, skip Step 1 and set `BFILE` in Step 3 to their common filename prefix.
+The historical analysis started from a pre-generated PLINK binary dataset (`.bed`, `.bim`, and `.fam`). The exact command that created it was not retained. Step 1 is a reconstruction from the source filename and recorded filters, not a guaranteed byte-for-byte reconstruction. If the original PLINK files are available, skip Step 1 and set `BFILE` in Step 3 to their shared prefix.
 
-### 1. Convert The VCF To PLINK Format
+### 1. Convert VCF To PLINK
 
 Install [PLINK 1.9](https://www.cog-genomics.org/plink/1.9/) and run:
 
@@ -358,11 +320,11 @@ BFILE=/path/to/output/DogAgingProject_2023_N-7627_canfam4_gp-0.70_biallelic
   --out "${BFILE}"
 ```
 
-This reconstructed command treats genotype calls with a maximum genotype probability below `0.70` as missing and retains strictly biallelic variants. Confirm these assumptions against the provenance of your VCF before using the resulting files for a new analysis.
+This reconstructed command treats genotype calls with a maximum genotype probability below `0.70` as missing and retains strictly biallelic variants. Confirm these assumptions against the provenance of the source VCF before using the result for a new analysis.
 
 ### 2. Create The PLINK Sample List
 
-The paper workflow retained samples with a DNA swab ID, excluded dog `27669`, and removed Village Dogs. The expected retained sample count for the source metadata is 7,618.
+The paper workflow retained samples with a DNA swab ID, excluded dog `27669`, and removed Village Dogs. The expected retained count at this metadata stage is 7,618.
 
 ```python
 from pathlib import Path
@@ -385,11 +347,11 @@ keep.to_csv(keep_path, sep="\t", index=False, header=False)
 print(f"Retained samples: {len(metadata):,}")
 ```
 
-The resulting tab-delimited file contains the family ID and individual ID columns expected by PLINK's `--keep` option.
+The tab-delimited output contains the family ID and individual ID columns expected by PLINK `--keep`.
 
 ### 3. Export Per-Chromosome Dosage CSV Files
 
-The paper used the 38 dog autosomes and a minor allele frequency threshold of `0.4`. PLINK's `--recode 12` writes each allele as `1` or `2`; the `awk` command sums each allele pair and subtracts two to produce genotype dosages of `0`, `1`, or `2`.
+The paper used the 38 dog autosomes and a minor allele frequency threshold of `0.4`. PLINK `--recode 12` writes each allele as `1` or `2`; the `awk` command sums each pair and subtracts two to produce dosages `0`, `1`, or `2`.
 
 ```bash
 PLINK=/path/to/plink
@@ -421,15 +383,13 @@ for CHR in $(seq 1 38); do
 done
 ```
 
-### 4. LD-Prune, Standardize, And Write Parquet Files
-
-Install the additional preprocessing packages:
+### 4. LD-Prune, Standardize, And Write Parquet
 
 ```bash
 python -m pip install pandas polars pyarrow scikit-learn scikit-allel
 ```
 
-The following script reproduces the recorded per-chromosome processing: remove constant variants, apply Rogers-Huff LD pruning with a 500-variant window, 50-variant step, and `r^2` threshold of `0.1`, standardize each retained SNP, and write Parquet files.
+The following reproduces the recorded per-chromosome processing: remove constant variants, apply Rogers-Huff LD pruning with a 500-variant window, 50-variant step, and `r^2` threshold `0.1`, standardize each retained SNP, and write Parquet.
 
 ```python
 from pathlib import Path
@@ -472,10 +432,4 @@ for chromosome in range(1, 39):
     print(chromosome, genotypes.shape, destination)
 ```
 
-This all-sample standardization matches the chromosome Parquet preparation used by the repository workflows. For a new held-out benchmark, split samples first, fit each `StandardScaler` on training samples only, and use that fitted scaler to transform the test samples; this prevents information from the test set entering preprocessing.
-
-## Quick Smoke Test (Mode 4 With Toy Data)
-
-```bash
-python main.py -train -inference -config_path configs/config_mode_4_template.yml
-```
+This all-sample standardization matches the bundled Mode 2 reference Parquets. For a new held-out benchmark, split samples first, fit each `StandardScaler` on training samples only, and use that fitted scaler to transform test samples to prevent test information from entering preprocessing.

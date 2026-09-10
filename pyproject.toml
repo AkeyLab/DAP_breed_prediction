@@ -20,6 +20,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+tutorial = [
+  "jupyterlab>=4.0",
+]
 figures = [
   "jupyterlab>=4.0",
   "scikit-learn==1.6.1",

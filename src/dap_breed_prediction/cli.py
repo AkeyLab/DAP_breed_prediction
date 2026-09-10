@@ -6,7 +6,7 @@ from .api import load_config, run_mode
 def parse_args():
     parser = argparse.ArgumentParser(description="Dog breed prediction pipeline")
 
-    parser.add_argument("-reproduce", "--reproduce", action="store_true", help="Reproduce the paper model (mode 6)")
+    parser.add_argument("-reproduce", "--reproduce", action="store_true", help="Reproduce the paper model (mode 5)")
     parser.add_argument("-train", "--train", action="store_true", help="Run training")
     parser.add_argument("-inference", "--inference", action="store_true", help="Run inference")
     parser.add_argument(
@@ -28,10 +28,10 @@ def parse_args():
     if not valid:
         parser.error(
             "Invalid argument combination. Allowed:\n"
-            "-inference (modes 1/2/3)\n"
-            "-train -inference (mode 4)\n"
-            "-train (mode 5)\n"
-            "-reproduce (mode 6)"
+            "-inference (mode 1, or mode 3 with prediction_model_path)\n"
+            "-train -inference (mode 2)\n"
+            "-train (mode 4)\n"
+            "-reproduce (mode 5)"
         )
 
     return args
@@ -39,15 +39,13 @@ def parse_args():
 
 def select_mode(args, config):
     if args.reproduce:
-        return 6
-    if args.train and args.inference:
-        return 4
-    if args.train:
         return 5
-    if config.get("label_path") is not None:
-        return 3
-    if config.get("breed_list_text_path") is not None:
+    if args.train and args.inference:
         return 2
+    if args.train:
+        return 4
+    if config.get("prediction_model_path") is not None:
+        return 3
     return 1
 
 

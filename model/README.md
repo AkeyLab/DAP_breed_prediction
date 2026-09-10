@@ -11,6 +11,6 @@ The source PCA file was approximately 435 MB and exceeded GitHub's normal 100 MB
 
 The PCA input must contain all 54,143 SNPs in `feature_names_in_` order and must already use the chromosome-wise standardization applied during paper preprocessing. The original fitted SNP scalers were not saved with the paper model. Do not apply this PCA directly to raw `0/1/2` genotype calls.
 
-Mode 1 does not load these artifacts. It trains a new 100-output model against the standardized SNP columns shared by the bundled DAP reference data and the user's input CSV. Mode 6 also trains a new model against the bundled fixed PC matrices so the paper training procedure can be reproduced.
+Mode 1 loads both artifacts for one-sample, 100-output inference and uses a configurable purity threshold that defaults to `0.7`. The bundled `data/Toy_X_full_54143_single.csv` demonstrates the required schema and preprocessing. Mode 5 separately trains a new random forest against the fixed PC matrices to reproduce the paper benchmark.
 
 Only load pickle or Joblib files obtained from a trusted source, because deserialization can execute arbitrary code.

@@ -14,6 +14,10 @@ PATH_KEYS = (
     "SNP_csv_path",
     "label_path",
     "breed_list_text_path",
+    "prediction_model_path",
+    "model_metadata_path",
+    "scaler_path",
+    "pca_model_path",
 )
 
 
@@ -78,7 +82,7 @@ def run_mode(mode, config, *, base_dir=None, configure_logging=True):
     Parameters
     ----------
     mode : int
-        Pipeline mode from 1 through 6.
+        Pipeline mode from 1 through 5.
     config : Mapping or path-like
         Configuration dictionary or YAML file path.
     base_dir : path-like, optional
@@ -95,9 +99,9 @@ def run_mode(mode, config, *, base_dir=None, configure_logging=True):
     try:
         mode = int(mode)
     except (TypeError, ValueError) as exc:
-        raise ValueError("Mode must be an integer from 1 through 6.") from exc
-    if mode not in range(1, 7):
-        raise ValueError("Mode must be an integer from 1 through 6.")
+        raise ValueError("Mode must be an integer from 1 through 5.") from exc
+    if mode not in range(1, 6):
+        raise ValueError("Mode must be an integer from 1 through 5.")
 
     base_dir = Path.cwd() if base_dir is None else Path(base_dir)
     resolved = _resolve_config_paths(load_config(config), base_dir)
@@ -114,52 +118,57 @@ def run_mode(mode, config, *, base_dir=None, configure_logging=True):
     random_state = resolved.get("random_state", 42)
     test_size = resolved.get("test_size", 0.3)
     include_unknown = resolved.get("include_unknown", True)
+    pure_threshold = resolved.get(
+        "pure_threshold", pipeline.DEFAULT_INFERENCE_PURE_THRESHOLD
+    )
+    if mode in (1, 2) and pure_threshold is None:
+        pure_threshold = pipeline.DEFAULT_INFERENCE_PURE_THRESHOLD
 
     if mode == 1:
         _require(resolved, mode, "SNP_csv_path")
-        pure_threshold = resolved.get(
-            "pure_threshold", pipeline.DEFAULT_INFERENCE_PURE_THRESHOLD
+        pipeline.pretrained_inference(
+            result_folder_path=str(result_path),
+            SNP_csv_path=snp_csv_path,
+            pure_threshold=pure_threshold,
         )
-        input_args = {
-            "result_folder_path": str(result_path),
-            "SNP_csv_path": snp_csv_path,
-            "pca_components": pca_components,
-            "random_state": random_state,
-            "pure_threshold": pure_threshold,
-            "include_unknown": True,
-        }
-        pipeline.train(**input_args)
-        pipeline.inference(**input_args)
     elif mode == 2:
-        _require(resolved, mode, "SNP_csv_path", "breed_list_text_path")
-        pure_threshold = resolved.get(
-            "pure_threshold", pipeline.DEFAULT_INFERENCE_PURE_THRESHOLD
+        _require(resolved, mode, "SNP_csv_path")
+        training = pipeline.train(
+            result_folder_path=str(result_path),
+            SNP_csv_path=snp_csv_path,
+            breed_list_text_path=breed_list_text_path,
+            pca_components=pca_components,
+            random_state=random_state,
+            pure_threshold=pure_threshold,
+            include_unknown=include_unknown,
         )
-        input_args = {
-            "result_folder_path": str(result_path),
-            "SNP_csv_path": snp_csv_path,
-            "breed_list_text_path": breed_list_text_path,
-            "pca_components": pca_components,
-            "random_state": random_state,
-            "pure_threshold": pure_threshold,
-            "include_unknown": include_unknown,
-        }
-        pipeline.train(**input_args)
-        pipeline.inference(**input_args)
+        pipeline.inference(
+            result_folder_path=str(result_path),
+            SNP_csv_path=snp_csv_path,
+            prediction_model_path=str(training["prediction_model_path"]),
+            model_metadata_path=str(training["model_metadata_path"]),
+            pure_threshold=pure_threshold,
+            require_exact_features=False,
+        )
     elif mode == 3:
-        _require(resolved, mode, "SNP_csv_path", "label_path")
-        input_args = {
-            "result_folder_path": str(result_path),
-            "SNP_csv_path": snp_csv_path,
-            "label_path": label_path,
-            "breed_list_text_path": breed_list_text_path,
-            "pca_components": pca_components,
-            "random_state": random_state,
-            "pure_threshold": resolved.get("pure_threshold"),
-            "include_unknown": include_unknown,
-        }
-        pipeline.train(**input_args)
-        pipeline.inference(**input_args)
+        _require(
+            resolved,
+            mode,
+            "SNP_csv_path",
+            "prediction_model_path",
+            "pure_threshold",
+        )
+        pipeline.inference(
+            result_folder_path=str(result_path),
+            SNP_csv_path=snp_csv_path,
+            prediction_model_path=resolved["prediction_model_path"],
+            model_metadata_path=resolved.get("model_metadata_path"),
+            scaler_path=resolved.get("scaler_path"),
+            pca_model_path=resolved.get("pca_model_path"),
+            pure_threshold=resolved["pure_threshold"],
+            label_path=label_path,
+            require_exact_features=True,
+        )
     elif mode == 4:
         _require(resolved, mode, "SNP_csv_path", "label_path")
         pipeline.full_training_pipeline(
@@ -170,16 +179,6 @@ def run_mode(mode, config, *, base_dir=None, configure_logging=True):
             pca_components=pca_components,
             random_state=random_state,
             test_size=test_size,
-        )
-    elif mode == 5:
-        _require(resolved, mode, "breed_list_text_path")
-        pipeline.full_training_pipeline(
-            result_folder_path=str(result_path),
-            breed_list_text_path=breed_list_text_path,
-            pca_components=pca_components,
-            random_state=random_state,
-            test_size=test_size,
-            include_unknown=include_unknown,
         )
     else:
         pipeline.full_training_pipeline(
