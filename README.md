@@ -2,6 +2,10 @@
 
 Code and data package for dog breed prediction/admixture estimation used in the DAP paper workflows: "***An interpretable machine learning framework for dog breed inference and ancestry decomposition***".
 
+## Start Here: Jupyter Tutorial
+
+**New users should begin with the [standalone all-modes tutorial notebook](notebooks/tutorial_all_modes.ipynb).** It covers installation, input formats, safe inspection of the bundled Parquet files, Python API and CLI examples for every mode, and output inspection. The notebook has saved outputs, while model-training modes are disabled by default so users can choose explicitly which workflows to run.
+
 ## Repository Layout
 
 ```text
@@ -133,10 +137,6 @@ python -m jupyter lab notebooks/reproduce_selected_paper_figures.ipynb
 
 The `figures` extra pins scikit-learn to the version used for the saved notebook execution. All inputs used by the notebook are bundled in `Figure_data/` or elsewhere in this repository, so a complete clone can reproduce every listed panel. No path configuration is needed when Jupyter is started from the repository root. Set `DAP_FIGURE_DATA` only to override the default `Figure_data/` location.
 
-### All-Modes Tutorial
-
-[View the standalone tutorial notebook](notebooks/tutorial_all_modes.ipynb) for package installation, safe Parquet inspection, Python API and CLI examples for all six modes, and output inspection. Expensive training modes are disabled by default and must be explicitly selected in `RUN_MODES`.
-
 ## Usage
 
 ### Python API
@@ -178,66 +178,62 @@ dap-breed-predict <mode flags> -config_path <path_to_config.yml>
 
 ## Modes
 
-### Mode 1
-Train on DAP data, infer on provided SNPs, fixed default breed panel.
+### Mode 1: Predict With The Standard Breed Panel
+
+**Designed for:** Predicting unlabeled dogs when the standard 14-breed panel used by the project is appropriate and no custom breed list is needed.
+
+**What it does:** Selects the DAP reference dogs for the default breeds plus `Unknown`, trains a model using SNPs shared with the supplied genotype CSV, and predicts breed composition for those input dogs.
 
 - Flags: `-inference`
-- Required config keys:
-  - `result_folder_path`
-  - `SNP_csv_path`
+- Required config keys: `result_folder_path`, `SNP_csv_path`
 
-### Mode 2
-Train on DAP data, infer on provided SNPs, breed set from provided breed list.
+### Mode 2: Predict With A Custom Breed Panel
 
-- Flags: `-inference`
-- Required config keys:
-  - `result_folder_path`
-  - `SNP_csv_path`
-  - `breed_list_text_path`
+**Designed for:** Predicting unlabeled dogs when the likely source breeds are known and the user wants a focused, custom set of output classes.
 
-### Mode 3
-Train on DAP data, infer on provided SNPs, and evaluate with labels.
+**What it does:** Reads one breed per line from `breed_list_text_path`, selects matching DAP reference dogs, trains on SNPs shared with the supplied genotype CSV, and predicts the input dogs using that breed panel plus `Unknown`.
 
 - Flags: `-inference`
-- Required config keys:
-  - `result_folder_path`
-  - `SNP_csv_path`
-  - `label_path`
-- Optional:
-  - `breed_list_text_path` (if supplied, it is prioritized for class set definition)
+- Required config keys: `result_folder_path`, `SNP_csv_path`, `breed_list_text_path`
 
-### Mode 4
-Train/test split on provided dataset (no DAP SNP parquet dependency).
+### Mode 3: Evaluate Predictions Against Known Labels
+
+**Designed for:** Benchmarking performance on a labeled validation dataset rather than only generating predictions.
+
+**What it does:** Trains from DAP reference dogs, predicts the supplied genotype CSV, compares predictions with `label_path`, and reports strict/loose accuracy plus per-class and confusion-map results. If a breed list is provided, it defines the classes; otherwise classes are inferred from the labels.
+
+- Flags: `-inference`
+- Required config keys: `result_folder_path`, `SNP_csv_path`, `label_path`
+- Optional config key: `breed_list_text_path`
+
+### Mode 4: Train And Test On Your Own Dataset
+
+**Designed for:** Developing or testing a model entirely from a user-provided labeled dataset, without using the bundled DAP reference genotypes.
+
+**What it does:** Splits the supplied genotype CSV and labels into training and test sets, optionally applies PCA, trains a model, and evaluates held-out samples. This is the fastest introductory workflow with the bundled toy files.
 
 - Flags: `-train -inference`
-- Required config keys:
-  - `result_folder_path`
-  - `SNP_csv_path`
-  - `label_path`
-- Optional:
-  - `breed_list_text_path`
-  - `pca_components` (default `0.95`)
-  - `random_state` (default `42`)
-  - `test_size` (default `0.3`)
+- Required config keys: `result_folder_path`, `SNP_csv_path`, `label_path`
+- Optional config keys: `breed_list_text_path`, `pca_components` (default `0.95`), `random_state` (default `42`), `test_size` (default `0.3`)
 
-### Mode 5
-Train on DAP data using a user-provided breed list.
+### Mode 5: Train A Reusable Model From The Full DAP Panel
+
+**Designed for:** Building a new reference model for a chosen breed panel when immediate prediction of an external CSV is not required.
+
+**What it does:** Loads all 38 bundled chromosome Parquet files, selects DAP dogs matching the requested breeds, performs a train/test split, applies PCA when needed, and writes the trained model and evaluation outputs. This is the most memory-intensive mode because it can read all 54,143 SNPs.
 
 - Flags: `-train`
-- Required config keys:
-  - `result_folder_path`
-  - `breed_list_text_path`
-- Optional:
-  - `pca_components` (default `0.95`)
-  - `random_state` (default `42`)
-  - `test_size` (default `0.3`)
+- Required config keys: `result_folder_path`, `breed_list_text_path`
+- Optional config keys: `pca_components` (default `0.95`), `random_state` (default `42`), `test_size` (default `0.3`)
 
-### Mode 6
-Reproduce the 100-class paper model using bundled PCA-space train/test matrices. See [Reproduce The Paper Results](#reproduce-the-paper-results) for the complete first-time workflow and expected results.
+### Mode 6: Reproduce The Paper Benchmark
+
+**Designed for:** Reproducing the paper's fixed 100-class breed-prediction experiment rather than analyzing new samples.
+
+**What it does:** Uses the bundled 100-PC training and test matrices, trains a new random forest with the paper settings, selects the pure/mixed threshold on the training set, and evaluates the fixed test set. It does not read the chromosome Parquet files. See [Reproduce The Paper Results](#reproduce-the-paper-results) for expected metrics.
 
 - Flags: `-reproduce`
-- Required config keys:
-  - `result_folder_path`
+- Required config key: `result_folder_path`
 
 ## Config Templates
 
