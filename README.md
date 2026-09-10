@@ -20,7 +20,8 @@ DAP_breed_prediction/
 │   ├── y_combined_100.csv
 │   └── folder_of_54143_SNPs/            # Chromosome-wise DAP SNP matrices
 ├── notebooks/
-│   └── reproduce_selected_paper_figures.ipynb
+│   ├── reproduce_selected_paper_figures.ipynb
+│   └── tutorial_all_modes.ipynb
 └── src/dap_breed_prediction/
     ├── cli.py                           # Mode parsing + orchestration
     ├── pipeline.py                      # Training/inference pipeline
@@ -132,7 +133,36 @@ python -m jupyter lab notebooks/reproduce_selected_paper_figures.ipynb
 
 The `figures` extra pins scikit-learn to the version used for the saved notebook execution. All inputs used by the notebook are bundled in `Figure_data/` or elsewhere in this repository, so a complete clone can reproduce every listed panel. No path configuration is needed when Jupyter is started from the repository root. Set `DAP_FIGURE_DATA` only to override the default `Figure_data/` location.
 
+### All-Modes Tutorial
+
+[View the standalone tutorial notebook](notebooks/tutorial_all_modes.ipynb) for package installation, safe Parquet inspection, Python API and CLI examples for all six modes, and output inspection. Expensive training modes are disabled by default and must be explicitly selected in `RUN_MODES`.
+
 ## Usage
+
+### Python API
+
+The package can be called directly from Python or a Jupyter notebook with a configuration dictionary:
+
+```python
+from pathlib import Path
+from dap_breed_prediction import run_mode
+
+config = {
+    "result_folder_path": "./results/mode_4",
+    "SNP_csv_path": "./data/Toy_X_snps.csv",
+    "label_path": "./data/Toy_Y_labels.csv",
+    "breed_list_text_path": "./data/Toy_a_short_breed_list.txt",
+    "pca_components": 0.95,
+    "random_state": 42,
+    "test_size": 0.3,
+}
+
+result_directory = run_mode(4, config, base_dir=Path.cwd())
+```
+
+`config` can also be a path to one of the bundled YAML files. `base_dir` controls how relative configuration paths are resolved and defaults to the current working directory.
+
+### CLI
 
 Run from repository root:
 
