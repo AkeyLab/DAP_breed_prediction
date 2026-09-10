@@ -1,5 +1,6 @@
 # Potentially Large files
 *.parquet
+!data/folder_of_54143_SNPs/*.parquet
 
 # Generated outputs
 results/

@@ -17,7 +17,8 @@ DAP_breed_prediction/
 │   ├── Toy_a_short_breed_list.txt
 │   ├── X_train_SNP_WG_prune_v3_1_std_pca_100.csv
 │   ├── X_test_SNP_WG_prune_v3_1_std_pca_100.csv
-│   └── y_combined_100.csv
+│   ├── y_combined_100.csv
+│   └── folder_of_54143_SNPs/            # Chromosome-wise DAP SNP matrices
 ├── notebooks/
 │   └── reproduce_selected_paper_figures.ipynb
 └── src/dap_breed_prediction/
@@ -49,7 +50,7 @@ pip install -e .
 
 Mode 6 reproduces the paper's 100-class breed-prediction experiment. It trains a new random-forest model with the paper settings (`100` PCA components and random seed `42`), selects the pure-versus-mixed prediction threshold on the training set, and evaluates the model on the fixed test set.
 
-The required PCA-space data and labels are included in this repository, so this workflow does **not** require the external chromosome-wise parquet files used by Modes 1, 2, 3, and 5.
+The required PCA-space data and labels are included in this repository. Mode 6 does **not** read the chromosome-wise Parquet files used by Modes 1, 2, 3, and 5.
 
 ### 1. Clone The Repository
 
@@ -249,7 +250,7 @@ Each run writes to `<result_folder_path>/`:
 - `Figure/`:
   - optional prediction map and SNP-importance SVGs
 
-## Important Data Note for Modes 1/2/3/5
+## Bundled DAP Data for Modes 1/2/3/5
 
 Modes `1/2/3/5` require chromosome-wise DAP SNP parquet files at:
 
@@ -257,7 +258,7 @@ Modes `1/2/3/5` require chromosome-wise DAP SNP parquet files at:
 data/folder_of_54143_SNPs/X_SNP_ch*_pruned_v3_std.parquet
 ```
 
-These parquet files are not bundled in this repository and must be provided separately.
+The 38 required Parquet files, one for each autosome, are bundled at that path. A complete repository clone therefore contains the DAP training matrices expected by these modes.
 
 ## Quick Smoke Test (Mode 4 With Toy Data)
 
