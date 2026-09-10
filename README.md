@@ -56,147 +56,6 @@ pip install -e .
 - Typical install time: Typically <5 minutes on a normal desktop with internet access.
 - Expected demo runtime: Typically <1 minute for the toy dataset after dependencies are installed.
 
-## Preparing DAP Genotypes From VCF
-
-This section documents how the chromosome-wise Parquet matrices used by the project were derived from the DAP 2023 genotype data. These steps are only needed when rebuilding the inputs from the original VCF; the repository already contains the processed Parquet files required by its standard workflows.
-
-The historical analysis started from a pre-generated PLINK binary dataset (`.bed`, `.bim`, and `.fam`). The exact command that created it was not retained. Step 1 is therefore a reconstruction based on the source filename and recorded filters, not a guaranteed byte-for-byte reconstruction. If the original PLINK files are available, skip Step 1 and set `BFILE` in Step 3 to their common filename prefix.
-
-### 1. Convert The VCF To PLINK Format
-
-Install [PLINK 1.9](https://www.cog-genomics.org/plink/1.9/) and run:
-
-```bash
-PLINK=/path/to/plink
-VCF=/path/to/DogAgingProject_2023_N-7627_canfam4.vcf.gz
-BFILE=/path/to/output/DogAgingProject_2023_N-7627_canfam4_gp-0.70_biallelic
-
-"${PLINK}" \
-  --vcf "${VCF}" \
-  --dog \
-  --vcf-min-gp 0.70 \
-  --biallelic-only strict \
-  --const-fid 0 \
-  --make-bed \
-  --out "${BFILE}"
-```
-
-This reconstructed command treats genotype calls with a maximum genotype probability below `0.70` as missing and retains strictly biallelic variants. Confirm these assumptions against the provenance of your VCF before using the resulting files for a new analysis.
-
-### 2. Create The PLINK Sample List
-
-The paper workflow retained samples with a DNA swab ID, excluded dog `27669`, and removed Village Dogs. The expected retained sample count for the source metadata is 7,618.
-
-```python
-from pathlib import Path
-
-import pandas as pd
-
-metadata_path = Path("/path/to/DAP_2023_DogOverview_v1.0.csv")
-keep_path = Path("/path/to/work/all_dog_ids.txt")
-
-metadata = pd.read_csv(metadata_path)
-metadata = metadata.loc[metadata["DNA_Swab_ID"].notna()].copy()
-metadata = metadata.loc[metadata["dog_id"] != 27669]
-metadata = metadata.loc[~metadata["Breed"].str.contains("Village", na=False)]
-
-keep = metadata[["dog_id"]].copy()
-keep.insert(0, "family_id", 0)
-keep_path.parent.mkdir(parents=True, exist_ok=True)
-keep.to_csv(keep_path, sep="\t", index=False, header=False)
-
-print(f"Retained samples: {len(metadata):,}")
-```
-
-The resulting tab-delimited file contains the family ID and individual ID columns expected by PLINK's `--keep` option.
-
-### 3. Export Per-Chromosome Dosage CSV Files
-
-The paper used the 38 dog autosomes and a minor allele frequency threshold of `0.4`. PLINK's `--recode 12` writes each allele as `1` or `2`; the `awk` command sums each allele pair and subtracts two to produce genotype dosages of `0`, `1`, or `2`.
-
-```bash
-PLINK=/path/to/plink
-BFILE=/path/to/output/DogAgingProject_2023_N-7627_canfam4_gp-0.70_biallelic
-KEEP=/path/to/work/all_dog_ids.txt
-WORK_DIR=/path/to/work/plink_export
-CSV_DIR=/path/to/output/csv
-
-mkdir -p "${WORK_DIR}" "${CSV_DIR}"
-
-for CHR in $(seq 1 38); do
-  PREFIX="${WORK_DIR}/classification_filt_ch${CHR}"
-
-  "${PLINK}" \
-    --bfile "${BFILE}" \
-    --dog \
-    --keep "${KEEP}" \
-    --chr "${CHR}" \
-    --recode 12 \
-    --maf 0.4 \
-    --out "${PREFIX}"
-
-  awk '
-    BEGIN { printf "dog_id" }
-    NR == FNR { printf ",%s", $2; next }
-    { printf "\n%d", $2; for (i = 7; i <= NF; i += 2) printf ",%d", $i + $(i + 1) - 2 }
-    END { printf "\n" }
-  ' "${PREFIX}.map" "${PREFIX}.ped" > "${CSV_DIR}/X_SNP_ch${CHR}.csv"
-done
-```
-
-### 4. LD-Prune, Standardize, And Write Parquet Files
-
-Install the additional preprocessing packages:
-
-```bash
-python -m pip install pandas polars pyarrow scikit-learn scikit-allel
-```
-
-The following script reproduces the recorded per-chromosome processing: remove constant variants, apply Rogers-Huff LD pruning with a 500-variant window, 50-variant step, and `r^2` threshold of `0.1`, standardize each retained SNP, and write Parquet files.
-
-```python
-from pathlib import Path
-
-import allel
-import numpy as np
-import pandas as pd
-import polars as pl
-from sklearn.preprocessing import StandardScaler
-
-csv_dir = Path("/path/to/output/csv")
-parquet_dir = Path("/path/to/output/parquet")
-parquet_dir.mkdir(parents=True, exist_ok=True)
-
-
-def locate_pruned_variants(genotypes: pd.DataFrame) -> np.ndarray:
-    matrix = genotypes.to_numpy(dtype=np.float32).T
-    variable = np.nanstd(matrix, axis=1) > 0
-    variable_indices = np.flatnonzero(variable)
-    unlinked = allel.locate_unlinked(
-        matrix[variable].astype("float32"), size=500, step=50, threshold=0.1
-    )
-    return variable_indices[unlinked]
-
-
-for chromosome in range(1, 39):
-    source = csv_dir / f"X_SNP_ch{chromosome}.csv"
-    genotypes = pl.read_csv(source).to_pandas().set_index("dog_id")
-    genotypes = genotypes.iloc[:, locate_pruned_variants(genotypes)]
-    genotypes.index = genotypes.index.astype(str)
-    genotypes = genotypes.sort_index()
-
-    scaled = pd.DataFrame(
-        StandardScaler().fit_transform(genotypes),
-        index=genotypes.index,
-        columns=genotypes.columns,
-    )
-    destination = parquet_dir / f"X_SNP_ch{chromosome}_pruned_v3_std.parquet"
-    scaled.to_parquet(destination)
-    print(chromosome, genotypes.shape, destination)
-```
-
-This all-sample standardization matches the chromosome Parquet preparation used by the repository workflows. For a new held-out benchmark, split samples first, fit each `StandardScaler` on training samples only, and use that fitted scaler to transform the test samples; this prevents information from the test set entering preprocessing.
-
 ## Reproduce The Paper Results
 
 Mode 6 reproduces the paper's 100-class breed-prediction experiment. It trains a new random-forest model with the paper settings (`100` PCA components and random seed `42`), selects the pure-versus-mixed prediction threshold on the training set, and evaluates the model on the fixed test set.
@@ -460,6 +319,149 @@ data/folder_of_54143_SNPs/X_SNP_ch*_pruned_v3_std.parquet
 ```
 
 The 38 required Parquet files, one for each autosome, are bundled at that path. A complete repository clone therefore contains the DAP training matrices expected by these modes.
+
+## Preparing DAP Genotypes From VCF
+
+This section documents how the chromosome-wise Parquet matrices used by the project were derived from the DAP 2023 genotype data. These steps are only needed when rebuilding the inputs from the original VCF; the repository already contains the processed Parquet files required by its standard workflows.
+
+The source DAP metadata and whole-genome VCF are not distributed in this repository. Access to Dog Aging Project Curated Data must be requested through the [DAP Data Access page](https://dogagingproject.org/data-access/). Applicants must receive approval and sign an individual Data Use Agreement before accessing the data through Terra. Access to the specific DAP 2023 files used below depends on their availability in the approved data release.
+
+The historical analysis started from a pre-generated PLINK binary dataset (`.bed`, `.bim`, and `.fam`). The exact command that created it was not retained. Step 1 is therefore a reconstruction based on the source filename and recorded filters, not a guaranteed byte-for-byte reconstruction. If the original PLINK files are available, skip Step 1 and set `BFILE` in Step 3 to their common filename prefix.
+
+### 1. Convert The VCF To PLINK Format
+
+Install [PLINK 1.9](https://www.cog-genomics.org/plink/1.9/) and run:
+
+```bash
+PLINK=/path/to/plink
+VCF=/path/to/DogAgingProject_2023_N-7627_canfam4.vcf.gz
+BFILE=/path/to/output/DogAgingProject_2023_N-7627_canfam4_gp-0.70_biallelic
+
+"${PLINK}" \
+  --vcf "${VCF}" \
+  --dog \
+  --vcf-min-gp 0.70 \
+  --biallelic-only strict \
+  --const-fid 0 \
+  --make-bed \
+  --out "${BFILE}"
+```
+
+This reconstructed command treats genotype calls with a maximum genotype probability below `0.70` as missing and retains strictly biallelic variants. Confirm these assumptions against the provenance of your VCF before using the resulting files for a new analysis.
+
+### 2. Create The PLINK Sample List
+
+The paper workflow retained samples with a DNA swab ID, excluded dog `27669`, and removed Village Dogs. The expected retained sample count for the source metadata is 7,618.
+
+```python
+from pathlib import Path
+
+import pandas as pd
+
+metadata_path = Path("/path/to/DAP_2023_DogOverview_v1.0.csv")
+keep_path = Path("/path/to/work/all_dog_ids.txt")
+
+metadata = pd.read_csv(metadata_path)
+metadata = metadata.loc[metadata["DNA_Swab_ID"].notna()].copy()
+metadata = metadata.loc[metadata["dog_id"] != 27669]
+metadata = metadata.loc[~metadata["Breed"].str.contains("Village", na=False)]
+
+keep = metadata[["dog_id"]].copy()
+keep.insert(0, "family_id", 0)
+keep_path.parent.mkdir(parents=True, exist_ok=True)
+keep.to_csv(keep_path, sep="\t", index=False, header=False)
+
+print(f"Retained samples: {len(metadata):,}")
+```
+
+The resulting tab-delimited file contains the family ID and individual ID columns expected by PLINK's `--keep` option.
+
+### 3. Export Per-Chromosome Dosage CSV Files
+
+The paper used the 38 dog autosomes and a minor allele frequency threshold of `0.4`. PLINK's `--recode 12` writes each allele as `1` or `2`; the `awk` command sums each allele pair and subtracts two to produce genotype dosages of `0`, `1`, or `2`.
+
+```bash
+PLINK=/path/to/plink
+BFILE=/path/to/output/DogAgingProject_2023_N-7627_canfam4_gp-0.70_biallelic
+KEEP=/path/to/work/all_dog_ids.txt
+WORK_DIR=/path/to/work/plink_export
+CSV_DIR=/path/to/output/csv
+
+mkdir -p "${WORK_DIR}" "${CSV_DIR}"
+
+for CHR in $(seq 1 38); do
+  PREFIX="${WORK_DIR}/classification_filt_ch${CHR}"
+
+  "${PLINK}" \
+    --bfile "${BFILE}" \
+    --dog \
+    --keep "${KEEP}" \
+    --chr "${CHR}" \
+    --recode 12 \
+    --maf 0.4 \
+    --out "${PREFIX}"
+
+  awk '
+    BEGIN { printf "dog_id" }
+    NR == FNR { printf ",%s", $2; next }
+    { printf "\n%d", $2; for (i = 7; i <= NF; i += 2) printf ",%d", $i + $(i + 1) - 2 }
+    END { printf "\n" }
+  ' "${PREFIX}.map" "${PREFIX}.ped" > "${CSV_DIR}/X_SNP_ch${CHR}.csv"
+done
+```
+
+### 4. LD-Prune, Standardize, And Write Parquet Files
+
+Install the additional preprocessing packages:
+
+```bash
+python -m pip install pandas polars pyarrow scikit-learn scikit-allel
+```
+
+The following script reproduces the recorded per-chromosome processing: remove constant variants, apply Rogers-Huff LD pruning with a 500-variant window, 50-variant step, and `r^2` threshold of `0.1`, standardize each retained SNP, and write Parquet files.
+
+```python
+from pathlib import Path
+
+import allel
+import numpy as np
+import pandas as pd
+import polars as pl
+from sklearn.preprocessing import StandardScaler
+
+csv_dir = Path("/path/to/output/csv")
+parquet_dir = Path("/path/to/output/parquet")
+parquet_dir.mkdir(parents=True, exist_ok=True)
+
+
+def locate_pruned_variants(genotypes: pd.DataFrame) -> np.ndarray:
+    matrix = genotypes.to_numpy(dtype=np.float32).T
+    variable = np.nanstd(matrix, axis=1) > 0
+    variable_indices = np.flatnonzero(variable)
+    unlinked = allel.locate_unlinked(
+        matrix[variable].astype("float32"), size=500, step=50, threshold=0.1
+    )
+    return variable_indices[unlinked]
+
+
+for chromosome in range(1, 39):
+    source = csv_dir / f"X_SNP_ch{chromosome}.csv"
+    genotypes = pl.read_csv(source).to_pandas().set_index("dog_id")
+    genotypes = genotypes.iloc[:, locate_pruned_variants(genotypes)]
+    genotypes.index = genotypes.index.astype(str)
+    genotypes = genotypes.sort_index()
+
+    scaled = pd.DataFrame(
+        StandardScaler().fit_transform(genotypes),
+        index=genotypes.index,
+        columns=genotypes.columns,
+    )
+    destination = parquet_dir / f"X_SNP_ch{chromosome}_pruned_v3_std.parquet"
+    scaled.to_parquet(destination)
+    print(chromosome, genotypes.shape, destination)
+```
+
+This all-sample standardization matches the chromosome Parquet preparation used by the repository workflows. For a new held-out benchmark, split samples first, fit each `StandardScaler` on training samples only, and use that fitted scaler to transform the test samples; this prevents information from the test set entering preprocessing.
 
 ## Quick Smoke Test (Mode 4 With Toy Data)
 
