@@ -117,23 +117,31 @@ def run_mode(mode, config, *, base_dir=None, configure_logging=True):
 
     if mode == 1:
         _require(resolved, mode, "SNP_csv_path")
+        pure_threshold = resolved.get(
+            "pure_threshold", pipeline.DEFAULT_INFERENCE_PURE_THRESHOLD
+        )
         input_args = {
             "result_folder_path": str(result_path),
             "SNP_csv_path": snp_csv_path,
             "pca_components": pca_components,
             "random_state": random_state,
+            "pure_threshold": pure_threshold,
             "include_unknown": True,
         }
         pipeline.train(**input_args)
         pipeline.inference(**input_args)
     elif mode == 2:
         _require(resolved, mode, "SNP_csv_path", "breed_list_text_path")
+        pure_threshold = resolved.get(
+            "pure_threshold", pipeline.DEFAULT_INFERENCE_PURE_THRESHOLD
+        )
         input_args = {
             "result_folder_path": str(result_path),
             "SNP_csv_path": snp_csv_path,
             "breed_list_text_path": breed_list_text_path,
             "pca_components": pca_components,
             "random_state": random_state,
+            "pure_threshold": pure_threshold,
             "include_unknown": include_unknown,
         }
         pipeline.train(**input_args)
@@ -147,6 +155,7 @@ def run_mode(mode, config, *, base_dir=None, configure_logging=True):
             "breed_list_text_path": breed_list_text_path,
             "pca_components": pca_components,
             "random_state": random_state,
+            "pure_threshold": resolved.get("pure_threshold"),
             "include_unknown": include_unknown,
         }
         pipeline.train(**input_args)

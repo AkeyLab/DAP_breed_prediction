@@ -2,6 +2,8 @@
 result_folder_path: './results/mode_2'
 # One standardized toy dog; replace this with a compatible unlabeled genotype CSV.
 SNP_csv_path: './data/Toy_X_single.csv'
+# Raw score above this value is pure; otherwise the top two breeds are reported.
+pure_threshold: 0.7
 # The 14 breed outputs examined in the paper's informative-variant analysis.
 breed_list_text_path: './data/paper_14_breed_list.txt'
 # Keep this false for an exact 14-output targeted model.

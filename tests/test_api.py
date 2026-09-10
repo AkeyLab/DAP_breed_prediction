@@ -51,14 +51,33 @@ class RunModeTests(unittest.TestCase):
                     self.assertNotIn("label_path", kwargs)
                     self.assertNotIn("breed_list_text_path", kwargs)
                     self.assertTrue(kwargs["include_unknown"])
+                    self.assertEqual(kwargs["pure_threshold"], 0.7)
                 elif mode == 2:
                     self.assertNotIn("label_path", kwargs)
                     self.assertEqual(kwargs["breed_list_text_path"], str(self.base_dir / "data/breeds.txt"))
                     self.assertFalse(kwargs["include_unknown"])
+                    self.assertEqual(kwargs["pure_threshold"], 0.7)
                 else:
                     self.assertEqual(kwargs["label_path"], str(self.base_dir / "data/labels.csv"))
                     self.assertEqual(kwargs["breed_list_text_path"], str(self.base_dir / "data/breeds.txt"))
                     self.assertFalse(kwargs["include_unknown"])
+                    self.assertIsNone(kwargs["pure_threshold"])
+
+    @patch("dap_breed_prediction.api.pipeline.inference")
+    @patch("dap_breed_prediction.api.pipeline.train")
+    def test_modes_1_and_2_accept_configured_threshold(self, train, inference):
+        for mode in (1, 2):
+            with self.subTest(mode=mode):
+                train.reset_mock()
+                inference.reset_mock()
+                run_mode(
+                    mode,
+                    self.config(pure_threshold=0.8),
+                    base_dir=self.base_dir,
+                    configure_logging=False,
+                )
+                self.assertEqual(train.call_args.kwargs["pure_threshold"], 0.8)
+                self.assertEqual(inference.call_args.kwargs["pure_threshold"], 0.8)
 
     @patch("dap_breed_prediction.api.pipeline.full_training_pipeline")
     def test_modes_4_to_6_dispatch_full_pipeline(self, full_training_pipeline):

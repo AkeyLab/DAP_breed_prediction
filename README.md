@@ -17,7 +17,7 @@ DAP_breed_prediction/
 ├── Figure_data/                          # Inputs for the executed figure notebook
 ├── data/                                # Toy data + reproduction assets
 │   ├── Toy_X_snps.csv
-│   ├── Toy_X_single.csv                 # One-dog input for Modes 1 and 2
+│   ├── Toy_X_single.csv                 # One-row extract for Modes 1 and 2
 │   ├── Toy_Y_labels.csv
 │   ├── Toy_a_short_breed_list.txt
 │   ├── paper_14_breed_list.txt
@@ -200,11 +200,13 @@ dap-breed-predict <mode flags> -config_path <path_to_config.yml>
 
 **What it does:** Uses all 100 outputs in the bundled DAP label table (99 named breeds plus `Unknown`), trains a model using SNPs shared with the supplied genotype CSV, and predicts breed composition for the input dogs. Mode 1 trains this model for the SNPs available in the supplied CSV; it does not load the archived Mode 6 model.
 
-The bundled configuration uses `data/Toy_X_single.csv`, a one-dog input whose executed prediction and inference log are saved in the [tutorial notebook](notebooks/tutorial_all_modes.ipynb).
+The bundled configuration uses `data/Toy_X_single.csv`, which is the exact row for dog `109622` extracted from `data/Toy_X_snps.csv`. It contains 266 SNPs: seven demonstration SNPs from each of the 38 autosomes. This keeps the tutorial runtime manageable, but it is not an independent validation sample or a production SNP panel.
+
+Modes 1 and 2 retrain a model using the SNP columns in the input CSV that overlap the 54,143 bundled DAP SNPs, so their input does not have to contain all 54,143 columns. Real inference should use as many consistently standardized, overlapping SNPs as possible. In contrast, direct use of the archived PCA and random-forest artifacts requires all 54,143 standardized SNPs in the exact training order. The executed one-row prediction and inference log are saved in the [tutorial notebook](notebooks/tutorial_all_modes.ipynb).
 
 - Flags: `-inference`
 - Required config keys: `result_folder_path`, `SNP_csv_path`
-- Optional config keys: `pca_components` (default `0.95`), `random_state` (default `42`)
+- Optional config keys: `pure_threshold` (default `0.7`), `pca_components` (default `0.95`), `random_state` (default `42`)
 
 ### Mode 2: Predict With A Custom Breed Panel
 
@@ -230,7 +232,7 @@ The bundled configuration uses the same `data/Toy_X_single.csv` one-dog input as
 
 - Flags: `-inference`
 - Required config keys: `result_folder_path`, `SNP_csv_path`, `breed_list_text_path`
-- Optional config keys: `include_unknown` (default `true`), `pca_components` (default `0.95`), `random_state` (default `42`)
+- Optional config keys: `include_unknown` (default `true`), `pure_threshold` (default `0.7`), `pca_components` (default `0.95`), `random_state` (default `42`)
 
 ### Mode 3: Evaluate Predictions Against Known Labels
 
@@ -298,6 +300,9 @@ Ready-to-edit templates are in `configs/`:
 - `include_unknown` (boolean; Modes 2, 3, and 5):
   - `true` appends the `Unknown` output to the classes in the breed list or labels.
   - `false` keeps only the named classes; the bundled Mode 2 template uses this setting for its 14-breed model.
+- `pure_threshold` (number from `0` to `1`; Modes 1, 2, and optionally 3):
+  - A maximum raw breed score above this threshold is reported as pure; otherwise the two highest-scoring breeds are each assigned `0.5`.
+  - Modes 1 and 2 default to `0.7`. Set another value in the YAML configuration to override it. Mode 3 retains training-based threshold selection when the setting is omitted or `null`.
 
 ## Outputs
 

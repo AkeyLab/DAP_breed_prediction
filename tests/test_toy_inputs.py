@@ -22,9 +22,12 @@ class ToyInputTests(unittest.TestCase):
         labeled = pd.read_csv(REPO_ROOT / "data" / "Toy_X_snps.csv")
 
         self.assertEqual(single.shape, (1, labeled.shape[1]))
-        self.assertEqual(single.loc[0, "dog_id"], "toy_dog_001")
+        self.assertEqual(single.loc[0, "dog_id"], 109622)
         self.assertListEqual(list(single.columns), list(labeled.columns))
         self.assertTrue(single.drop(columns="dog_id").notna().all(axis=None))
+
+        reference = labeled.loc[labeled["dog_id"] == 109622].reset_index(drop=True)
+        pd.testing.assert_frame_equal(single, reference)
 
 
 if __name__ == "__main__":

@@ -37,6 +37,7 @@ PAPER_14_BREEDS = [ 'Australian Shepherd',
 DEFAULT_SELECTED_BREEDS = PAPER_14_BREEDS
 DEFAULT_SELECED_BREEDS = PAPER_14_BREEDS
 PCA_TRIGGER_PROPORTION = 0.35
+DEFAULT_INFERENCE_PURE_THRESHOLD = 0.7
 
 
 def get_all_breed_classes():
@@ -50,6 +51,21 @@ def configure_unknown_class(selected_breeds, include_unknown):
     if include_unknown:
         selected_breeds.append('Unknown')
     return selected_breeds
+
+
+def normalize_pure_threshold(pure_threshold):
+    """Validate and normalize an optional pure-versus-mixed threshold."""
+    if pure_threshold is None:
+        return None
+    if isinstance(pure_threshold, bool):
+        raise ValueError("pure_threshold must be a number between 0 and 1.")
+    try:
+        pure_threshold = float(pure_threshold)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("pure_threshold must be a number between 0 and 1.") from exc
+    if not np.isfinite(pure_threshold) or not 0 <= pure_threshold <= 1:
+        raise ValueError("pure_threshold must be a number between 0 and 1.")
+    return round(pure_threshold, 2)
 
 def apply_pca(  X_train,
                 result_folder_path,
@@ -132,10 +148,12 @@ def train(  result_folder_path,
             prediction_model_path = None, # model
             pca_components = None, # training param
             random_state = 42,
+            pure_threshold = None,
             pure_only = False, 
             include_unknown = True,
             force_recomputation = False
             ):
+    configured_theta = normalize_pure_threshold(pure_threshold)
     # if the prediction model exists
     #matched_files = glob.glob(f"{result_folder_path}/Model/Prediction_model_theta_*.pkl")
     #if matched_files:    
@@ -254,16 +272,22 @@ def train(  result_folder_path,
     if prediction_model_path is not None:
         logger.info(f'Loading the prediction model at {prediction_model_path}')
         regressor = joblib.load(prediction_model_path)
-        theta_str = prediction_model_path.split("theta_")[1].replace(".pkl", "")
-        theta = float(theta_str)
+        if configured_theta is None:
+            theta_str = prediction_model_path.split("theta_")[1].replace(".pkl", "")
+            theta = float(theta_str)
+        else:
+            theta = configured_theta
     else:
         pattern = f"{result_folder_path}/Model/Prediction_model_theta_*.pkl"
         matched_files = glob.glob(pattern)
         if matched_files:
             prediction_model_path = matched_files[0]
             logger.info(f'Loading the prediction model at {prediction_model_path}')
-            theta_str = prediction_model_path.split("theta_")[1].replace(".pkl", "")
-            theta = float(theta_str)
+            if configured_theta is None:
+                theta_str = prediction_model_path.split("theta_")[1].replace(".pkl", "")
+                theta = float(theta_str)
+            else:
+                theta = configured_theta
             regressor = joblib.load(prediction_model_path)
         else:
             logger.info(f'Training a prediction model') # only in this case
@@ -271,14 +295,18 @@ def train(  result_folder_path,
             from sklearn.multioutput import MultiOutputRegressor
             regressor = MultiOutputRegressor(RandomForestRegressor(n_estimators = 100, random_state = random_state, n_jobs = -1))
             regressor.fit(X_train, Y_train)
-            Y_train_pred = regressor.predict(X_train)
-            strict_accuracies, loose_accuracies = helper.pure_threshold_search(Y_train_pred, Y_train, mute = True)
-            pure_thresholds = list(np.arange(0, 1.01, 0.01))
-            theta = helper.best_pure_threshold_v1(pure_thresholds, strict_accuracies, loose_accuracies)
-            theta = round(theta, 2)
+            if configured_theta is None:
+                Y_train_pred = regressor.predict(X_train)
+                strict_accuracies, loose_accuracies = helper.pure_threshold_search(Y_train_pred, Y_train, mute = True)
+                pure_thresholds = list(np.arange(0, 1.01, 0.01))
+                theta = helper.best_pure_threshold_v1(pure_thresholds, strict_accuracies, loose_accuracies)
+                theta = round(theta, 2)
+                logger.info(f'Best purity threshold (theta) is {theta}.')
+            else:
+                theta = configured_theta
+                logger.info(f'Using configured purity threshold (theta) {theta}.')
             prediction_model_path = f'{result_folder_path}/Model/Prediction_model_theta_{theta}.pkl' 
             joblib.dump(regressor, prediction_model_path)
-            logger.info(f'Best purity threshold (theta) is {theta}.')
             logger.info(f'Prediction model saved to {result_folder_path}/Model/Prediction_model_theta_{theta}.pkl\n')
 
     analyze.Generate_SNP_importance_score(result_folder_path, prediction_model_path, selected_snps, selected_breeds, pca_model_path)
@@ -292,10 +320,12 @@ def inference(  result_folder_path,
                 prediction_model_path = None, # model
                 pca_components = None, # training param
                 random_state = 42,
+                pure_threshold = None,
                 pure_only = False, 
                 include_unknown = True,
                 force_recomputation = False
                 ):
+    configured_theta = normalize_pure_threshold(pure_threshold)
 
     # prepare X_test
     X_test = pd.read_csv(SNP_csv_path)
@@ -369,21 +399,31 @@ def inference(  result_folder_path,
     if prediction_model_path is not None:
         logger.info(f'Loading the prediction model at {prediction_model_path}')
         regressor = joblib.load(prediction_model_path)
-        theta_str = prediction_model_path.split("theta_")[1].replace(".pkl", "")
-        theta = float(theta_str)
+        if configured_theta is None:
+            theta_str = prediction_model_path.split("theta_")[1].replace(".pkl", "")
+            theta = float(theta_str)
+        else:
+            theta = configured_theta
     else:
         pattern = f"{result_folder_path}/Model/Prediction_model_theta_*.pkl"
         matched_files = glob.glob(pattern)
         if matched_files:
             model_path = matched_files[0]
             logger.info(f'Loading the prediction model at {model_path}')
-            theta_str = model_path.split("theta_")[1].replace(".pkl", "")
-            theta = float(theta_str)
+            if configured_theta is None:
+                theta_str = model_path.split("theta_")[1].replace(".pkl", "")
+                theta = float(theta_str)
+            else:
+                theta = configured_theta
             regressor = joblib.load(model_path)
         else:
             # no prediction model is found. There should be an error
             logger.info('No prediction model is found.')
             return
+
+    if configured_theta is not None:
+        theta = configured_theta
+        logger.info(f'Using configured purity threshold (theta) {theta}.')
 
     # run inference / prediction
     Y_pred_raw = regressor.predict(X_test) # Y_pred_raw is numpy array
@@ -398,25 +438,18 @@ def inference(  result_folder_path,
         Y_pred_raw_df.to_csv(f'{result_folder_path}/Table/Raw_prediction.csv')
         logger.info(f'Raw prediction saved to {result_folder_path}/Table/Raw_prediction.csv')
 
-    # save transformed predictions
-    if os.path.exists(f'{result_folder_path}/Table/Transformed_prediction.csv') and not force_recomputation:
-        logger.info(f'Transformed prediction already at {result_folder_path}/Table/Transformed_prediction.csv')
-        Y_pred_transformed_df = pd.read_csv(f'{result_folder_path}/Table/Transformed_prediction.csv', index_col = 'dog_id')
-        Y_pred_transformed_df.index = Y_pred_transformed_df.index.astype(str)
-    else:
-        Y_pred_transformed = helper.transform_prediction(Y_pred_raw, theta) # Y_pred_transformed is numpy array
-        Y_pred_transformed_df = pd.DataFrame(Y_pred_transformed, index = x_test_ids, columns=selected_breeds)
-        Y_pred_transformed_df.to_csv(f'{result_folder_path}/Table/Transformed_prediction.csv')
-        logger.info(f'Transformed prediction saved to {result_folder_path}/Table/Transformed_prediction.csv')
+    # Threshold-dependent outputs are cheap and must not be reused after a config change.
+    Y_pred_transformed = helper.transform_prediction(Y_pred_raw_df.to_numpy(), theta)
+    Y_pred_transformed_df = pd.DataFrame(
+        Y_pred_transformed, index=x_test_ids, columns=selected_breeds
+    )
+    Y_pred_transformed_df.to_csv(f'{result_folder_path}/Table/Transformed_prediction.csv')
+    logger.info(f'Transformed prediction saved to {result_folder_path}/Table/Transformed_prediction.csv')
 
-    # save prediction labels
-    if os.path.exists(f'{result_folder_path}/Table/Predictions.csv') and not force_recomputation:
-        logger.info(f'Predictions (text label) already at {result_folder_path}/Table/Predictions.csv')
-    else:
-        Y_pred_labels = Y_pred_transformed_df.apply(helper.reconstruct_label, axis=1)
-        Y_pred_label_df = pd.DataFrame(Y_pred_labels, index = x_test_ids, columns=['Prediction'])
-        Y_pred_label_df.to_csv(f'{result_folder_path}/Table/Predictions.csv')
-        logger.info(f'Predictions (text label) saved to {result_folder_path}/Table/Predictions.csv')
+    Y_pred_labels = Y_pred_transformed_df.apply(helper.reconstruct_label, axis=1)
+    Y_pred_label_df = pd.DataFrame(Y_pred_labels, index=x_test_ids, columns=['Prediction'])
+    Y_pred_label_df.to_csv(f'{result_folder_path}/Table/Predictions.csv')
+    logger.info(f'Predictions (text label) saved to {result_folder_path}/Table/Predictions.csv')
 
     if Y_test is not None: # need input labels
         strict_acc,loose_acc,metadata = helper.prediction_analysis(Y_pred_raw, Y_test, pure_threshold=theta, mute = False)

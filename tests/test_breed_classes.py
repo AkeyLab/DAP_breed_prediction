@@ -32,6 +32,14 @@ class BreedClassTests(unittest.TestCase):
         self.assertEqual(len(with_unknown), 15)
         self.assertEqual(with_unknown[-1], "Unknown")
 
+    def test_pure_threshold_validation(self):
+        self.assertEqual(pipeline.normalize_pure_threshold("0.70"), 0.7)
+        self.assertIsNone(pipeline.normalize_pure_threshold(None))
+        for invalid in (-0.1, 1.1, True, "invalid"):
+            with self.subTest(invalid=invalid):
+                with self.assertRaisesRegex(ValueError, "between 0 and 1"):
+                    pipeline.normalize_pure_threshold(invalid)
+
 
 if __name__ == "__main__":
     unittest.main()
