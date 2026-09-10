@@ -4,7 +4,7 @@ Code and data package for dog breed prediction/admixture estimation used in the 
 
 ## Start Here: Jupyter Tutorial
 
-**New users should begin with the [standalone all-modes tutorial notebook](notebooks/tutorial_all_modes.ipynb).** It covers installation, input formats, safe inspection of the bundled Parquet files, Python API and CLI examples for every mode, and output inspection. The notebook has saved outputs, while model-training modes are disabled by default so users can choose explicitly which workflows to run.
+**New users should begin with the [standalone all-modes tutorial notebook](notebooks/tutorial_all_modes.ipynb).** It covers installation, input formats, safe inspection of the bundled Parquet files, Python API and CLI examples for every mode, and output inspection. The notebook includes saved logs and predictions from executable one-dog Mode 1 and Mode 2 examples; the remaining model-training modes are disabled by default. Set `RUN_MODES = set()` in the notebook to inspect the saved outputs without retraining either example.
 
 ## Repository Layout
 
@@ -17,6 +17,7 @@ DAP_breed_prediction/
 ├── Figure_data/                          # Inputs for the executed figure notebook
 ├── data/                                # Toy data + reproduction assets
 │   ├── Toy_X_snps.csv
+│   ├── Toy_X_single.csv                 # One-dog input for Modes 1 and 2
 │   ├── Toy_Y_labels.csv
 │   ├── Toy_a_short_breed_list.txt
 │   ├── paper_14_breed_list.txt
@@ -54,7 +55,8 @@ pip install -e .
 
 - No non-standard hardware is required; CPU-only execution is sufficient.
 - Typical install time: Typically <5 minutes on a normal desktop with internet access.
-- Expected demo runtime: Typically <1 minute for the toy dataset after dependencies are installed.
+- Expected Mode 4 smoke-test runtime: Typically <1 minute after dependencies are installed.
+- Expected Mode 1/2 notebook runtime: Approximately 2 minutes for both one-dog examples on the reference system; runtime varies with available CPU resources.
 
 ## Reproduce The Paper Results
 
@@ -198,6 +200,8 @@ dap-breed-predict <mode flags> -config_path <path_to_config.yml>
 
 **What it does:** Uses all 100 outputs in the bundled DAP label table (99 named breeds plus `Unknown`), trains a model using SNPs shared with the supplied genotype CSV, and predicts breed composition for the input dogs. Mode 1 trains this model for the SNPs available in the supplied CSV; it does not load the archived Mode 6 model.
 
+The bundled configuration uses `data/Toy_X_single.csv`, a one-dog input whose executed prediction and inference log are saved in the [tutorial notebook](notebooks/tutorial_all_modes.ipynb).
+
 - Flags: `-inference`
 - Required config keys: `result_folder_path`, `SNP_csv_path`
 - Optional config keys: `pca_components` (default `0.95`), `random_state` (default `42`)
@@ -221,6 +225,8 @@ Pembroke Welsh Corgi                Poodle
 ```
 
 The paper selected these outputs from its full 100-class model. Mode 2 instead retrains a focused model on the same 14-breed subset, so it is useful for targeted inference but is not an exact reproduction of the paper's fitted model or SNP-importance values. Use Mode 6 and the [executed figure notebook](notebooks/reproduce_selected_paper_figures.ipynb) for paper reproduction.
+
+The bundled configuration uses the same `data/Toy_X_single.csv` one-dog input as Mode 1. Its executed 14-class prediction and inference log are saved in the [tutorial notebook](notebooks/tutorial_all_modes.ipynb).
 
 - Flags: `-inference`
 - Required config keys: `result_folder_path`, `SNP_csv_path`, `breed_list_text_path`
