@@ -241,13 +241,76 @@ Relative paths in a YAML file are resolved from the current working directory. R
 
 ## Python API
 
-Every mode is callable from Python or Jupyter with a configuration mapping or YAML path:
+Every mode is callable from Python or Jupyter with a configuration mapping or YAML path. Run these examples from the repository root:
 
 ```python
 from pathlib import Path
+
 from dap_breed_prediction import run_mode
 
-config = {
+
+REPO_ROOT = Path.cwd()
+```
+
+### Mode 1
+
+Use the bundled PCA and 100-output random forest to predict one sample with all 54,143 standardized SNPs:
+
+```python
+mode_1_config = {
+    "result_folder_path": "./results/mode_1",
+    "SNP_csv_path": "./data/Toy_X_full_54143_single.csv",
+    "pure_threshold": 0.7,
+}
+
+mode_1_results = run_mode(1, mode_1_config, base_dir=REPO_ROOT)
+```
+
+### Mode 2
+
+Retrain with all eligible DAP reference dogs using overlapping SNPs and an optional subset of output classes, then predict the supplied sample:
+
+```python
+mode_2_config = {
+    "result_folder_path": "./results/mode_2",
+    "SNP_csv_path": "./data/Toy_X_single.csv",
+    "breed_list_text_path": "./data/paper_14_breed_list.txt",  # Optional
+    "include_unknown": False,
+    "pure_threshold": 0.7,
+    "random_state": 42,
+}
+
+mode_2_results = run_mode(2, mode_2_config, base_dir=REPO_ROOT)
+```
+
+Remove `breed_list_text_path` and `include_unknown` to retrain all 100 outputs.
+
+### Mode 3
+
+Apply a saved Mode 2 or Mode 4 model to exact-schema SNP data. Run the Mode 2 example first because these paths use its artifacts:
+
+```python
+mode_3_config = {
+    "result_folder_path": "./results/mode_3",
+    "SNP_csv_path": "./data/Toy_X_single.csv",
+    "prediction_model_path": "./results/mode_2/Model/Prediction_model_theta_0.7.pkl",
+    "model_metadata_path": "./results/mode_2/Model/model_metadata.json",
+    "pure_threshold": 0.7,
+    # Optional: include labels to calculate strict and loose accuracy.
+    "label_path": "./data/Toy_Y_labels.csv",
+}
+
+mode_3_results = run_mode(3, mode_3_config, base_dir=REPO_ROOT)
+```
+
+Remove `label_path` for prediction without performance analysis.
+
+### Mode 4
+
+Train and evaluate a model using only user-provided X and Y data:
+
+```python
+mode_4_config = {
     "result_folder_path": "./results/mode_4",
     "SNP_csv_path": "./data/Toy_X_snps.csv",
     "label_path": "./data/Toy_Y_labels.csv",
@@ -257,10 +320,22 @@ config = {
     "test_size": 0.3,
 }
 
-result_directory = run_mode(4, config, base_dir=Path.cwd())
+mode_4_results = run_mode(4, mode_4_config, base_dir=REPO_ROOT)
 ```
 
-`base_dir` controls relative path resolution and defaults to the current working directory.
+### Mode 5
+
+Reproduce the fixed 100-class paper benchmark:
+
+```python
+mode_5_config = {
+    "result_folder_path": "./results/mode_5",
+}
+
+mode_5_results = run_mode(5, mode_5_config, base_dir=REPO_ROOT)
+```
+
+Each call returns its configured result directory as a `pathlib.Path`. `base_dir` controls relative path resolution and defaults to the current working directory.
 
 ## Output Files
 
