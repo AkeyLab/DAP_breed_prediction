@@ -15,7 +15,7 @@ run_mode(1, "configs/config_mode_1_template.yml")
 ```
 
 ```bash
-python main.py -inference -config_path configs/config_mode_1_template.yml
+python main.py -mode 1 -config_path configs/config_mode_1_template.yml
 ```
 
 ## Repository Layout
@@ -80,15 +80,15 @@ No GPU or other non-standard hardware is required. Modes 1, 3, and the toy Mode 
 
 ## Modes At A Glance
 
-| Mode | Purpose | CLI flags | Uses DAP reference data? |
+| Mode | Purpose | CLI command | Uses DAP reference data? |
 |---|---|---|---|
-| 1 | Single-sample prediction with the bundled 100-output PCA/random-forest model | `-inference` | No |
-| 2 | Retrain on all eligible DAP reference dogs, then predict supplied sample(s) | `-train -inference` | Yes |
-| 3 | Test a saved model on multiple new samples, with optional labels and metrics | `-inference` | No |
-| 4 | Train and evaluate a new model using only user-provided genotypes and labels | `-train` | No |
-| 5 | Reproduce the fixed 100-class paper benchmark | `-reproduce` | Uses bundled fixed PC matrices |
+| 1 | Single-sample prediction with the bundled 100-output PCA/random-forest model | `-mode 1` | No |
+| 2 | Retrain on all eligible DAP reference dogs, then predict supplied sample(s) | `-mode 2` | Yes |
+| 3 | Test a saved model on multiple new samples, with optional labels and metrics | `-mode 3` | No |
+| 4 | Train and evaluate a new model using only user-provided genotypes and labels | `-mode 4` | No |
+| 5 | Reproduce the fixed 100-class paper benchmark | `-mode 5` | Uses bundled fixed PC matrices |
 
-Modes 1 and 3 share `-inference`. The presence of `prediction_model_path` in the YAML selects Mode 3; without that key, the CLI selects Mode 1.
+The CLI mode is always explicit; configuration contents never change which mode is selected.
 
 ## Mode 1: Pretrained Single-Sample Prediction
 
@@ -104,7 +104,7 @@ The input must contain exactly one row, a `dog_id` column, and the complete 54,1
 The bundled `data/Toy_X_full_54143_single.csv` is a compatible one-row example. It is dog `109622` from the DAP training partition and is provided as an interface test, not as independent validation data.
 
 ```bash
-python main.py -inference -config_path configs/config_mode_1_template.yml
+python main.py -mode 1 -config_path configs/config_mode_1_template.yml
 ```
 
 Required config keys: `result_folder_path`, `SNP_csv_path`.
@@ -130,7 +130,7 @@ Mode 2 performs the following operations:
 The process log prints the full DAP dimensions, selected sample and class counts, selected class names, requested SNP count, and overlap size. The bundled DAP label table contains 6,572 labeled dogs and 100 outputs; the original metadata filtering stage retained 7,618 dogs before label availability and downstream filtering.
 
 ```bash
-python main.py -train -inference -config_path configs/config_mode_2_template.yml
+python main.py -mode 2 -config_path configs/config_mode_2_template.yml
 ```
 
 Required config keys: `result_folder_path`, `SNP_csv_path`.
@@ -161,10 +161,10 @@ When `label_path` is omitted, Mode 3 writes predictions only. When labels are pr
 
 ```bash
 # First create the template model used by this example.
-python main.py -train -inference -config_path configs/config_mode_2_template.yml
+python main.py -mode 2 -config_path configs/config_mode_2_template.yml
 
 # Then test that saved model.
-python main.py -inference -config_path configs/config_mode_3_template.yml
+python main.py -mode 3 -config_path configs/config_mode_3_template.yml
 ```
 
 Required config keys: `result_folder_path`, `SNP_csv_path`, `prediction_model_path`, `pure_threshold`.
@@ -180,7 +180,7 @@ The label CSV must contain `dog_id` and `label`. Use `BreedName` for a pure dog 
 Mode 4 reads the supplied X and Y files, creates a train/test split, optionally standardizes and applies PCA, trains a random forest, selects a purity threshold on the training split, and evaluates the held-out split. It saves the fitted model, optional scaler/PCA, and `model_metadata.json`, so the resulting model can be used directly by Mode 3.
 
 ```bash
-python main.py -train -config_path configs/config_mode_4_template.yml
+python main.py -mode 4 -config_path configs/config_mode_4_template.yml
 ```
 
 Required config keys: `result_folder_path`, `SNP_csv_path`, `label_path`.
@@ -194,7 +194,7 @@ Optional config keys: `breed_list_text_path`, `pca_components` (default `0.95` w
 Mode 5 trains a new 100-output random forest with random seed `42` from the bundled 100-PC training matrix, chooses the pure-versus-mixed threshold on the training set, and evaluates the fixed test matrix. It does not load the pretrained Mode 1 random forest and does not read the 38 chromosome Parquets.
 
 ```bash
-python main.py -reproduce -config_path configs/config_mode_5_template.yml
+python main.py -mode 5 -config_path configs/config_mode_5_template.yml
 ```
 
 The reference run reports:

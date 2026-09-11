@@ -1,25 +1,47 @@
 import unittest
 from argparse import Namespace
+from unittest.mock import patch
 
-from dap_breed_prediction.cli import select_mode
+from dap_breed_prediction.cli import main, parse_args
 
 
-class SelectModeTests(unittest.TestCase):
-    def args(self, *, reproduce=False, train=False, inference=False):
-        return Namespace(reproduce=reproduce, train=train, inference=inference)
+class CliTests(unittest.TestCase):
+    def test_short_options_select_mode_and_config(self):
+        with patch(
+            "sys.argv",
+            ["dap-breed-predict", "-mode", "3", "-config_path", "config.yml"],
+        ):
+            args = parse_args()
 
-    def test_explicit_modes(self):
-        self.assertEqual(select_mode(self.args(reproduce=True), {}), 5)
-        self.assertEqual(select_mode(self.args(train=True, inference=True), {}), 2)
-        self.assertEqual(select_mode(self.args(train=True), {}), 4)
+        self.assertEqual(args.mode, 3)
+        self.assertEqual(args.config_path, "config.yml")
 
-    def test_inference_modes_follow_config(self):
-        inference = self.args(inference=True)
-        self.assertEqual(select_mode(inference, {}), 1)
-        self.assertEqual(
-            select_mode(inference, {"prediction_model_path": "model.pkl"}), 3
-        )
-        self.assertEqual(select_mode(inference, {"label_path": "labels.csv"}), 1)
+    def test_long_options_select_mode_and_config(self):
+        with patch(
+            "sys.argv",
+            ["dap-breed-predict", "--mode", "5", "--config_path", "config.yml"],
+        ):
+            args = parse_args()
+
+        self.assertEqual(args.mode, 5)
+        self.assertEqual(args.config_path, "config.yml")
+
+    def test_mode_outside_supported_range_is_rejected(self):
+        with patch(
+            "sys.argv",
+            ["dap-breed-predict", "-mode", "6", "-config_path", "config.yml"],
+        ):
+            with self.assertRaises(SystemExit):
+                parse_args()
+
+    @patch("dap_breed_prediction.cli.run_mode")
+    @patch("dap_breed_prediction.cli.parse_args")
+    def test_main_passes_explicit_mode_to_python_api(self, parse_args_mock, run_mode):
+        parse_args_mock.return_value = Namespace(mode=2, config_path="config.yml")
+
+        main()
+
+        run_mode.assert_called_once_with(2, "config.yml")
 
 
 if __name__ == "__main__":

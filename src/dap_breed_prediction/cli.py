@@ -1,14 +1,20 @@
 import argparse
 
-from .api import load_config, run_mode
+from .api import run_mode
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Dog breed prediction pipeline")
 
-    parser.add_argument("-reproduce", "--reproduce", action="store_true", help="Reproduce the paper model (mode 5)")
-    parser.add_argument("-train", "--train", action="store_true", help="Run training")
-    parser.add_argument("-inference", "--inference", action="store_true", help="Run inference")
+    parser.add_argument(
+        "-mode",
+        "--mode",
+        type=int,
+        choices=range(1, 6),
+        required=True,
+        metavar="{1,2,3,4,5}",
+        help="Pipeline mode to run",
+    )
     parser.add_argument(
         "-config_path",
         "--config_path",
@@ -17,43 +23,12 @@ def parse_args():
         help="Path to a YAML config file containing data paths and settings",
     )
 
-    args = parser.parse_args()
-
-    valid = (
-        (args.reproduce and not args.train and not args.inference)
-        or (args.train and not args.inference and not args.reproduce)
-        or (args.train and args.inference and not args.reproduce)
-        or (args.inference and not args.train and not args.reproduce)
-    )
-    if not valid:
-        parser.error(
-            "Invalid argument combination. Allowed:\n"
-            "-inference (mode 1, or mode 3 with prediction_model_path)\n"
-            "-train -inference (mode 2)\n"
-            "-train (mode 4)\n"
-            "-reproduce (mode 5)"
-        )
-
-    return args
-
-
-def select_mode(args, config):
-    if args.reproduce:
-        return 5
-    if args.train and args.inference:
-        return 2
-    if args.train:
-        return 4
-    if config.get("prediction_model_path") is not None:
-        return 3
-    return 1
+    return parser.parse_args()
 
 
 def main():
     args = parse_args()
-    config = load_config(args.config_path)
-    mode = select_mode(args, config)
-    run_mode(mode, config)
+    run_mode(args.mode, args.config_path)
 
 
 if __name__ == "__main__":
