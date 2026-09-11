@@ -88,33 +88,39 @@ class RunModeTests(unittest.TestCase):
         train.return_value = {
             "prediction_model_path": self.base_dir / "results/test/Model/model.pkl",
             "model_metadata_path": self.base_dir / "results/test/Model/model_metadata.json",
+            "pure_threshold": 0.62,
         }
         result = run_mode(2, self.config(), base_dir=self.base_dir, configure_logging=False)
 
         self.assertEqual(result, self.base_dir / "results/test")
         train.assert_called_once()
-        self.assertEqual(train.call_args.kwargs["pure_threshold"], 0.8)
+        self.assertIsNone(train.call_args.kwargs["pure_threshold"])
         inference.assert_called_once()
         kwargs = inference.call_args.kwargs
+        self.assertEqual(kwargs["pure_threshold"], 0.62)
         self.assertFalse(kwargs["require_exact_features"])
         self.assertNotIn("label_path", kwargs)
 
     @patch("dap_breed_prediction.api.pipeline.inference")
     @patch("dap_breed_prediction.api.pipeline.train")
-    def test_mode_2_treats_null_threshold_as_default(self, train, inference):
+    def test_mode_2_learns_threshold_without_class_subset(self, train, inference):
         train.return_value = {
             "prediction_model_path": self.base_dir / "results/test/Model/model.pkl",
             "model_metadata_path": self.base_dir / "results/test/Model/model_metadata.json",
+            "pure_threshold": 0.62,
         }
+        config = self.config(breed_list_text_path=None)
+        config.pop("pure_threshold")
         run_mode(
             2,
-            self.config(pure_threshold=None),
+            config,
             base_dir=self.base_dir,
             configure_logging=False,
         )
 
-        self.assertEqual(train.call_args.kwargs["pure_threshold"], 0.7)
-        self.assertEqual(inference.call_args.kwargs["pure_threshold"], 0.7)
+        self.assertIsNone(train.call_args.kwargs["pure_threshold"])
+        self.assertIsNone(train.call_args.kwargs["breed_list_text_path"])
+        self.assertEqual(inference.call_args.kwargs["pure_threshold"], 0.62)
 
     @patch("dap_breed_prediction.api.pipeline.inference")
     @patch("dap_breed_prediction.api.pipeline.train")

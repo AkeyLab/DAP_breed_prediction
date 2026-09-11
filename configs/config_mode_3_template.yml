@@ -1,10 +1,11 @@
 # Paths
 result_folder_path: './results/mode_3'
 # Run Mode 2 first or replace these with another package-trained model and sidecar.
-prediction_model_path: './results/mode_2/Model/Prediction_model_theta_0.7.pkl'
+prediction_model_path: './results/mode_2/Model/Prediction_model_theta_0.62.pkl'
 model_metadata_path: './results/mode_2/Model/model_metadata.json'
 # Must contain exactly the SNP list recorded in model_metadata.json.
 SNP_csv_path: './data/Toy_X_single.csv'
-pure_threshold: 0.7
+# Threshold learned by the bundled Mode 2 example; match this to the tested model.
+pure_threshold: 0.62
 # Optional: add label_path to calculate strict and loose accuracy.
 # label_path: '/path/to/new_labels.csv'

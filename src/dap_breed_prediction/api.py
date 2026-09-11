@@ -118,10 +118,8 @@ def run_mode(mode, config, *, base_dir=None, configure_logging=True):
     random_state = resolved.get("random_state", 42)
     test_size = resolved.get("test_size", 0.3)
     include_unknown = resolved.get("include_unknown", True)
-    pure_threshold = resolved.get(
-        "pure_threshold", pipeline.DEFAULT_INFERENCE_PURE_THRESHOLD
-    )
-    if mode in (1, 2) and pure_threshold is None:
+    pure_threshold = resolved.get("pure_threshold")
+    if mode == 1 and pure_threshold is None:
         pure_threshold = pipeline.DEFAULT_INFERENCE_PURE_THRESHOLD
 
     if mode == 1:
@@ -133,13 +131,18 @@ def run_mode(mode, config, *, base_dir=None, configure_logging=True):
         )
     elif mode == 2:
         _require(resolved, mode, "SNP_csv_path")
+        if pure_threshold is not None:
+            logger.info(
+                "Mode 2 ignores configured pure_threshold; the threshold is "
+                "selected from training predictions."
+            )
         training = pipeline.train(
             result_folder_path=str(result_path),
             SNP_csv_path=snp_csv_path,
             breed_list_text_path=breed_list_text_path,
             pca_components=pca_components,
             random_state=random_state,
-            pure_threshold=pure_threshold,
+            pure_threshold=None,
             include_unknown=include_unknown,
         )
         pipeline.inference(
@@ -147,7 +150,7 @@ def run_mode(mode, config, *, base_dir=None, configure_logging=True):
             SNP_csv_path=snp_csv_path,
             prediction_model_path=str(training["prediction_model_path"]),
             model_metadata_path=str(training["model_metadata_path"]),
-            pure_threshold=pure_threshold,
+            pure_threshold=training["pure_threshold"],
             require_exact_features=False,
         )
     elif mode == 3:

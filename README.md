@@ -125,7 +125,7 @@ Mode 2 performs the following operations:
 2. Combines all eligible labeled DAP samples rather than preserving the paper train/test split.
 3. Finds the ordered overlap `X'` between SNP columns in the supplied `SNP_csv_path` and the 54,143 DAP SNPs.
 4. Uses all 100 output classes unless `breed_list_text_path` supplies a subset of classes, one per line.
-5. Trains a random forest, plus a scaler and PCA when the feature-to-sample ratio triggers PCA.
+5. Trains a random forest, plus a scaler and PCA when the feature-to-sample ratio triggers PCA, and selects the purity threshold from the training predictions.
 6. Saves every fitted artifact, the exact SNP/class schema, and the purity threshold.
 7. Predicts the supplied sample row or rows with the newly trained model.
 
@@ -137,7 +137,9 @@ python main.py -mode 2 -config_path configs/config_mode_2_template.yml
 
 Required config keys: `result_folder_path`, `SNP_csv_path`.
 
-Optional config keys: `breed_list_text_path`, `include_unknown` (default `true`), `pure_threshold` (default `0.7`), `pca_components` (default `0.95`), `random_state` (default `42`).
+Optional config keys: `breed_list_text_path`, `include_unknown` (default `true`), `pca_components` (default `0.95`), `random_state` (default `42`). Mode 2 always learns its purity threshold during training; a configured `pure_threshold` is ignored.
+
+The bundled 14-class example selects `0.62` in the reference environment. Other SNP or class panels may select a different value; use the threshold and matching model filename recorded in `Model/model_metadata.json` when configuring Mode 3.
 
 The template uses `data/Toy_X_single.csv`, which is one row copied from `data/Toy_X_snps.csv` and contains 266 SNPs. It also uses the following 14 outputs from the paper section **"Leveraging SNP importance scores to create small panels of informative variants"**:
 
@@ -276,7 +278,6 @@ mode_2_config = {
     "SNP_csv_path": "./data/Toy_X_single.csv",
     "breed_list_text_path": "./data/paper_14_breed_list.txt",  # Optional
     "include_unknown": False,
-    "pure_threshold": 0.7,
     "random_state": 42,
 }
 
@@ -293,9 +294,9 @@ Apply a saved Mode 2 or Mode 4 model to exact-schema SNP data. Run the Mode 2 ex
 mode_3_config = {
     "result_folder_path": "./results/mode_3",
     "SNP_csv_path": "./data/Toy_X_single.csv",
-    "prediction_model_path": "./results/mode_2/Model/Prediction_model_theta_0.7.pkl",
+    "prediction_model_path": "./results/mode_2/Model/Prediction_model_theta_0.62.pkl",
     "model_metadata_path": "./results/mode_2/Model/model_metadata.json",
-    "pure_threshold": 0.7,
+    "pure_threshold": 0.62,  # Learned by the bundled Mode 2 example
     # Optional: include labels to calculate strict and loose accuracy.
     "label_path": "./data/Toy_Y_labels.csv",
 }
