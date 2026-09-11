@@ -80,13 +80,15 @@ No GPU or other non-standard hardware is required. Modes 1, 3, and the toy Mode 
 
 ## Modes At A Glance
 
-| Mode | Purpose | CLI command | Uses DAP reference data? |
-|---|---|---|---|
-| 1 | Single-sample prediction with the bundled 100-output PCA/random-forest model | `-mode 1` | No |
-| 2 | Retrain on all eligible DAP reference dogs, then predict supplied sample(s) | `-mode 2` | Yes |
-| 3 | Test a saved model on multiple new samples, with optional labels and metrics | `-mode 3` | No |
-| 4 | Train and evaluate a new model using only user-provided genotypes and labels | `-mode 4` | No |
-| 5 | Reproduce the fixed 100-class paper benchmark | `-mode 5` | Uses bundled fixed PC matrices |
+| Mode | Purpose | Uses DAP reference data? |
+|:---:|---|:---:|
+| 1 | Single-sample prediction with the bundled 100-output PCA/random-forest model | No\* |
+| 2 | Retrain on all eligible DAP reference dogs, then predict supplied sample(s) | Yes |
+| 3 | Test a saved model on multiple new samples, with optional labels and metrics | No |
+| 4 | Train and evaluate a new model using only user-provided genotypes and labels | No |
+| 5 | Reproduce the fixed 100-class paper benchmark | Uses bundled fixed PC matrices |
+
+\*The bundled PCA and random-forest models used by Mode 1 were developed from DAP data and are ready for inference. "No" means Mode 1 does not read additional DAP reference data or retrain the models when it runs.
 
 The CLI mode is always explicit; configuration contents never change which mode is selected.
 
