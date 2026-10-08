@@ -35,6 +35,7 @@ alternative-models = [
 
 [project.scripts]
 dap-breed-predict = "dap_breed_prediction.cli:main"
+dap-breed-generate-command = "dap_breed_prediction.command_generator:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

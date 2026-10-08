@@ -321,6 +321,36 @@ GitHub displays all saved notebook outputs. Set `DAP_FIGURE_DATA` only when over
 
 Relative paths in a YAML file are resolved from the current working directory. Run commands from the repository root unless absolute paths are used.
 
+## Command Generator
+
+The repository includes a small command generator, similar in spirit to the selector on the PyTorch install page: choose the mode and options, and it writes the YAML file plus the command to run it.
+
+```bash
+python scripts/generate_run_command.py \
+  --mode 4 \
+  --config-path configs/generated_mode_4_xgboost.yml \
+  --training-model-name xgboost \
+  --xgboost-device cuda \
+  --result-folder-path ./results/mode_4_xgboost \
+  --force
+```
+
+It prints:
+
+```text
+Wrote YAML config: configs/generated_mode_4_xgboost.yml
+Run this command:
+python main.py -mode 4 -config_path configs/generated_mode_4_xgboost.yml
+```
+
+After package installation, the same generator is available as:
+
+```bash
+dap-breed-generate-command --mode 1 --pretrained-model-name ridge --force
+```
+
+All mode-specific config options are exposed as flags. For example, use `--breed-list-text-path ""` to clear a default breed-list path and train all available classes.
+
 ## Python API
 
 Every mode is callable from Python or Jupyter with a configuration mapping or YAML path. All workflow parameters accepted by `run_mode()` can be supplied in that config; explicit keyword arguments are optional overrides and take precedence over matching config keys. Run these examples from the repository root:
