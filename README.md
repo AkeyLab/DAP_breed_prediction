@@ -201,9 +201,10 @@ Mode 5 trains a new 100-output random forest with random seed `42` from the bund
 python main.py -mode 5 -config_path configs/config_mode_5_template.yml
 ```
 
-The reference run reports:
+The current reference run reports:
 
 ```text
+Wall-clock time: 256.43 seconds (4 minutes 16 seconds)
 Best purity threshold (theta) is 0.7.
 Strict Accuracy: 58.67%
 Loose Accuracy: 91.71%
@@ -218,7 +219,7 @@ Mode 5 uses:
 - `data/X_test_SNP_WG_prune_v3_1_std_pca_100.csv`
 - `data/y_combined_100.csv`
 
-Training is CPU-only and took approximately 4-5 minutes on the reference system.
+Training is CPU-only. The wall-clock time above measures only the Mode 5 command after dependencies were installed.
 
 ## Reproduce The Paper Figures
 
