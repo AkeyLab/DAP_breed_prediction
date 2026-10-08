@@ -82,6 +82,47 @@ class RunModeTests(unittest.TestCase):
 
         self.assertIsNone(pretrained_inference.call_args.kwargs["pure_threshold"])
 
+    @patch("dap_breed_prediction.api.pipeline.pretrained_inference")
+    def test_mode_1_accepts_direct_model_path_override(self, pretrained_inference):
+        config = {
+            "result_folder_path": "results/test",
+            "SNP_csv_path": "data/snps.csv",
+        }
+        run_mode(
+            1,
+            config,
+            base_dir=self.base_dir,
+            configure_logging=False,
+            model_path="models/custom.joblib",
+            prediction_model_type="sklearn",
+            scaler_path="models/custom_scaler.joblib",
+            pure_threshold=0.73,
+        )
+
+        kwargs = pretrained_inference.call_args.kwargs
+        self.assertEqual(
+            kwargs["prediction_model_path"], str(self.base_dir / "models/custom.joblib")
+        )
+        self.assertEqual(
+            kwargs["scaler_path"], str(self.base_dir / "models/custom_scaler.joblib")
+        )
+        self.assertEqual(kwargs["prediction_model_type"], "sklearn")
+        self.assertEqual(kwargs["pure_threshold"], 0.73)
+
+    def test_direct_model_path_alias_conflict_is_rejected(self):
+        with self.assertRaisesRegex(ValueError, "either model_path or prediction_model_path"):
+            run_mode(
+                1,
+                {
+                    "result_folder_path": "results/test",
+                    "SNP_csv_path": "data/snps.csv",
+                },
+                base_dir=self.base_dir,
+                configure_logging=False,
+                model_path="models/a.joblib",
+                prediction_model_path="models/b.joblib",
+            )
+
     @patch("dap_breed_prediction.api.pipeline.inference")
     @patch("dap_breed_prediction.api.pipeline.train")
     def test_mode_2_retrains_then_predicts(self, train, inference):
@@ -137,6 +178,19 @@ class RunModeTests(unittest.TestCase):
             kwargs["prediction_model_path"], str(self.base_dir / "models/model.pkl")
         )
         self.assertEqual(kwargs["label_path"], str(self.base_dir / "data/labels.csv"))
+
+    @patch("dap_breed_prediction.api.pipeline.inference")
+    @patch("dap_breed_prediction.api.pipeline.train")
+    def test_mode_3_accepts_model_path_alias(self, train, inference):
+        config = self.config(prediction_model_path=None, model_path="models/model_alias.pkl")
+        result = run_mode(3, config, base_dir=self.base_dir, configure_logging=False)
+
+        self.assertEqual(result, self.base_dir / "results/test")
+        train.assert_not_called()
+        self.assertEqual(
+            inference.call_args.kwargs["prediction_model_path"],
+            str(self.base_dir / "models/model_alias.pkl"),
+        )
 
     @patch("dap_breed_prediction.api.pipeline.full_training_pipeline")
     def test_mode_4_uses_only_user_data(self, full_training_pipeline):

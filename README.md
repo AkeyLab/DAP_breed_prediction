@@ -47,6 +47,8 @@ DAP_breed_prediction/
 ├── notebooks/
 │   ├── tutorial_all_modes.ipynb
 │   └── reproduce_selected_paper_figures.ipynb
+├── scripts/
+│   └── train_pretrained_models.py       # Training code for Mode 1 model set
 └── src/dap_breed_prediction/
     ├── api.py
     ├── cli.py
@@ -81,6 +83,8 @@ Install optional backends for XGBoost, MLP, or Transformer Mode 1 inference:
 ```bash
 python -m pip install -e ".[alternative-models]"
 ```
+
+The same optional extra is needed to retrain the full alternative model set.
 
 Use `python -m pip install -r requirements.txt` instead if an editable package installation is not wanted.
 
@@ -129,7 +133,7 @@ Optional config keys:
 
 - `pretrained_model_name`: registry model key, default `random_forest`.
 - `pure_threshold`: override the selected model's registry threshold.
-- `prediction_model_path`, `prediction_model_type`, and `scaler_path`: use a custom PCA100 predictor instead of a registry model.
+- `model_path` or `prediction_model_path`, `prediction_model_type`, and `scaler_path`: use a custom PCA100 predictor instead of a registry model.
 - `pca_model_path`: override the bundled PCA model.
 
 The default example predicts `Australian Shepherd` with a maximum raw score of `0.965`.
@@ -262,6 +266,33 @@ be analyzed in a very similar way.
 | **Random Forest** | 0.70 | 58.67% | 91.71% | CPU | 273.02s | 2.36s | 275.38s |
 | Transformer | 0.97 | 47.15% | 90.60% | GPU, A100 | 18.00s | 0.61s | 18.60s |
 
+The XGBoost result should be interpreted as a GPU-backed result. A
+same-parameter CPU-only XGBoost run was attempted earlier and terminated after
+more than 30 minutes without completing. This is the main practical tradeoff:
+XGBoost gives the best strict and loose accuracy in this comparison, but the
+measured run uses GPU acceleration, while the Random Forest benchmark remains
+CPU-only and therefore easier to reproduce in CPU-limited research settings.
+
+The training code for these models is in
+`scripts/train_pretrained_models.py`. It records the exact estimator
+configuration for each model, trains on
+`data/X_train_SNP_WG_prune_v3_1_std_pca_100.csv`, selects theta from training
+predictions, evaluates on `data/X_test_SNP_WG_prune_v3_1_std_pca_100.csv`, and
+writes model artifacts plus `training_summary.csv`.
+
+```bash
+python -m pip install -e ".[alternative-models]"
+python scripts/train_pretrained_models.py --output-dir results/pretrained_model_training
+```
+
+To train only CPU-accessible sklearn models:
+
+```bash
+python scripts/train_pretrained_models.py \
+  --models random_forest,ridge,knn,extratrees \
+  --output-dir results/pretrained_model_training_cpu
+```
+
 ## Reproduce The Paper Figures
 
 The [executed figure notebook](notebooks/reproduce_selected_paper_figures.ipynb) contains the calculations and saved outputs for Fig. 2b, Fig. 2c, Fig. 2e, Fig. 3b, Fig. 3c, Fig. 3d, Fig. 3e, Fig. 3f, and Fig. 3h. It uses the archived 10-class small model for Fig. 2c and does not retrain that model. Required inputs are under `Figure_data/` or elsewhere in the repository.
@@ -313,6 +344,23 @@ mode_1_results = run_mode(1, mode_1_config, base_dir=REPO_ROOT)
 Switching to another bundled predictor only changes the model name. For example,
 use `"pretrained_model_name": "xgboost"` after installing
 `.[alternative-models]`.
+
+You can also select a custom PCA100 model directly by path:
+
+```python
+run_mode(
+    1,
+    {
+        "result_folder_path": "./results/mode_1_custom",
+        "SNP_csv_path": "./data/Toy_X_full_54143_single.csv",
+    },
+    base_dir=REPO_ROOT,
+    model_path="./model/alternative_models/ridge-PCA100.joblib",
+    scaler_path="./model/alternative_models/ridge_scaler-PCA100.joblib",
+    prediction_model_type="sklearn",
+    pure_threshold=0.87,
+)
+```
 
 ### Mode 2
 

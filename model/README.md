@@ -21,4 +21,8 @@ XGBoost and PyTorch-based models require optional dependencies at inference time
 python -m pip install -e ".[alternative-models]"
 ```
 
+The training code for all bundled predictors is in
+`scripts/train_pretrained_models.py`; it records the estimator configuration,
+threshold search, benchmark metrics, and output artifact paths.
+
 Only load pickle or Joblib files obtained from a trusted source, because deserialization can execute arbitrary code.
