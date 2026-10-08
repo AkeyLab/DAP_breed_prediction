@@ -111,6 +111,23 @@ class RunModeTests(unittest.TestCase):
         self.assertEqual(kwargs["prediction_model_type"], "sklearn")
         self.assertEqual(kwargs["pure_threshold"], 0.73)
 
+    @patch("dap_breed_prediction.api.pipeline.pretrained_inference")
+    def test_mode_1_can_be_configured_with_explicit_kwargs_only(self, pretrained_inference):
+        run_mode(
+            1,
+            base_dir=self.base_dir,
+            configure_logging=False,
+            result_folder_path="results/explicit",
+            SNP_csv_path="data/snps.csv",
+            pretrained_model_name="ridge",
+            pure_threshold=0.87,
+        )
+
+        kwargs = pretrained_inference.call_args.kwargs
+        self.assertEqual(kwargs["SNP_csv_path"], str(self.base_dir / "data/snps.csv"))
+        self.assertEqual(kwargs["pretrained_model_name"], "ridge")
+        self.assertEqual(kwargs["pure_threshold"], 0.87)
+
     def test_direct_model_path_alias_conflict_is_rejected(self):
         with self.assertRaisesRegex(ValueError, "either model_path or prediction_model_path"):
             run_mode(
@@ -202,6 +219,24 @@ class RunModeTests(unittest.TestCase):
             str(self.base_dir / "models/model_input_scaler.joblib"),
         )
 
+    @patch("dap_breed_prediction.api.pipeline.inference")
+    @patch("dap_breed_prediction.api.pipeline.train")
+    def test_direct_model_path_overrides_config_model_path(self, train, inference):
+        config = self.config(prediction_model_path="models/config_model.pkl")
+        run_mode(
+            3,
+            config,
+            base_dir=self.base_dir,
+            configure_logging=False,
+            model_path="models/direct_model.pkl",
+        )
+
+        train.assert_not_called()
+        self.assertEqual(
+            inference.call_args.kwargs["prediction_model_path"],
+            str(self.base_dir / "models/direct_model.pkl"),
+        )
+
     @patch("dap_breed_prediction.api.pipeline.full_training_pipeline")
     def test_mode_4_uses_only_user_data(self, full_training_pipeline):
         run_mode(4, self.config(), base_dir=self.base_dir, configure_logging=False)
@@ -212,6 +247,27 @@ class RunModeTests(unittest.TestCase):
         self.assertEqual(kwargs["label_path"], str(self.base_dir / "data/labels.csv"))
         self.assertEqual(kwargs["training_model_name"], "ridge")
         self.assertEqual(kwargs["xgboost_device"], "cpu")
+
+    @patch("dap_breed_prediction.api.pipeline.full_training_pipeline")
+    def test_mode_4_explicit_kwargs_override_config(self, full_training_pipeline):
+        run_mode(
+            4,
+            self.config(),
+            base_dir=self.base_dir,
+            configure_logging=False,
+            training_model_name="extratrees",
+            xgboost_device="cuda",
+            pca_components=None,
+            random_state=11,
+            test_size=0.4,
+        )
+
+        kwargs = full_training_pipeline.call_args.kwargs
+        self.assertEqual(kwargs["training_model_name"], "extratrees")
+        self.assertEqual(kwargs["xgboost_device"], "cuda")
+        self.assertIsNone(kwargs["pca_components"])
+        self.assertEqual(kwargs["random_state"], 11)
+        self.assertEqual(kwargs["test_size"], 0.4)
 
     @patch("dap_breed_prediction.api.pipeline.full_training_pipeline")
     def test_mode_5_reproduces_paper(self, full_training_pipeline):
@@ -227,6 +283,17 @@ class RunModeTests(unittest.TestCase):
         self.assertEqual(kwargs["breed_list_text_path"], "reproduce")
         self.assertEqual(kwargs["pca_components"], 100)
         self.assertEqual(kwargs["random_state"], 42)
+
+    @patch("dap_breed_prediction.api.pipeline.full_training_pipeline")
+    def test_mode_5_accepts_configured_random_state(self, full_training_pipeline):
+        run_mode(
+            5,
+            {"result_folder_path": "results/reproduce", "random_state": 99},
+            base_dir=self.base_dir,
+            configure_logging=False,
+        )
+
+        self.assertEqual(full_training_pipeline.call_args.kwargs["random_state"], 99)
 
     def test_mode_specific_required_fields(self):
         cases = {

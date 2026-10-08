@@ -4,5 +4,14 @@ result_folder_path: './results/mode_2'
 SNP_csv_path: './data/Toy_X_single.csv'
 # Optional class subset. Remove this key to retrain all 100 outputs.
 breed_list_text_path: './data/paper_14_breed_list.txt'
+
+# Training Params
 # Keep this false for an exact 14-output targeted model.
 include_unknown: false
+pca_components: 0.95
+random_state: 42
+# Mode 2 always learns theta during training; this key is accepted but ignored.
+pure_threshold: null
+
+# Runtime Params
+configure_logging: true

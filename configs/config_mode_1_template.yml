@@ -2,8 +2,20 @@
 result_folder_path: './results/mode_1'
 # Mode 1 requires all 54,143 training-standardized SNPs used by the bundled PCA.
 SNP_csv_path: './data/Toy_X_full_54143_single.csv'
+
+# Model Params
 # Bundled model name. Options are listed in model/model_registry.json.
 pretrained_model_name: random_forest
+# Optional: use a custom PCA100 predictor instead of pretrained_model_name.
+# model_path is an alias for prediction_model_path; use only one.
+prediction_model_path: null
+model_path: null
+prediction_model_type: null
+scaler_path: null
+pca_model_path: null
 # Optional pure-versus-mixed threshold override. By default, Mode 1 uses the
 # registry theta for pretrained_model_name.
-# pure_threshold: 0.7
+pure_threshold: null
+
+# Runtime Params
+configure_logging: true

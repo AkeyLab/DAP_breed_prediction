@@ -135,6 +135,7 @@ Optional config keys:
 - `pure_threshold`: override the selected model's registry threshold.
 - `model_path` or `prediction_model_path`, `prediction_model_type`, and `scaler_path`: use a custom PCA100 predictor instead of a registry model.
 - `pca_model_path`: override the bundled PCA model.
+- `configure_logging`: set to `false` to suppress `process.log` creation and console logging.
 
 The default example predicts `Australian Shepherd` with a maximum raw score of `0.965`.
 
@@ -160,7 +161,7 @@ python main.py -mode 2 -config_path configs/config_mode_2_template.yml
 
 Required config keys: `result_folder_path`, `SNP_csv_path`.
 
-Optional config keys: `breed_list_text_path`, `include_unknown` (default `true`), `pca_components` (default `0.95`), `random_state` (default `42`). Mode 2 always learns its purity threshold during training; a configured `pure_threshold` is ignored.
+Optional config keys: `breed_list_text_path`, `include_unknown` (default `true`), `pca_components` (default `0.95`), `random_state` (default `42`), `configure_logging` (default `true`). Mode 2 always learns its purity threshold during training; a configured `pure_threshold` is ignored.
 
 The bundled 14-class example selects `0.62` in the reference environment. Other SNP or class panels may select a different value; use the threshold and matching model filename recorded in `Model/model_metadata.json` when configuring Mode 3.
 
@@ -194,9 +195,9 @@ python main.py -mode 2 -config_path configs/config_mode_2_template.yml
 python main.py -mode 3 -config_path configs/config_mode_3_template.yml
 ```
 
-Required config keys: `result_folder_path`, `SNP_csv_path`, `prediction_model_path`, `pure_threshold`.
+Required config keys: `result_folder_path`, `SNP_csv_path`, `prediction_model_path` or `model_path`, `pure_threshold`.
 
-Optional config keys: `model_metadata_path` (automatically sought beside the model), `scaler_path`, `pca_model_path`, `model_input_scaler_path`, `prediction_model_type`, `label_path`.
+Optional config keys: `model_metadata_path` (automatically sought beside the model), `scaler_path`, `pca_model_path`, `model_input_scaler_path`, `prediction_model_type`, `label_path`, `configure_logging`.
 
 The label CSV must contain `dog_id` and `label`. Use `BreedName` for a pure dog and `BreedA / BreedB` for a two-breed mix.
 
@@ -212,7 +213,7 @@ python main.py -mode 4 -config_path configs/config_mode_4_template.yml
 
 Required config keys: `result_folder_path`, `SNP_csv_path`, `label_path`.
 
-Optional config keys: `breed_list_text_path`, `training_model_name` (default `random_forest`; options: `random_forest`, `xgboost`, `ridge`, `knn`, `extratrees`, `mlp`, `transformer`), `xgboost_device` (`auto`, `cpu`, or `cuda`), `pca_components` (default `0.95` when PCA is triggered), `random_state` (default `42`), `test_size` (default `0.3`).
+Optional config keys: `breed_list_text_path`, `training_model_name` (default `random_forest`; options: `random_forest`, `xgboost`, `ridge`, `knn`, `extratrees`, `mlp`, `transformer`), `xgboost_device` (`auto`, `cpu`, or `cuda`), `pca_components` (default `0.95` when PCA is triggered), `random_state` (default `42`), `test_size` (default `0.3`), `configure_logging` (default `true`).
 
 `ridge`, `knn`, `mlp`, and `transformer` fit an additional model-input scaler after any PCA step. XGBoost and PyTorch-based models require `python -m pip install -e ".[alternative-models]"`.
 
@@ -225,6 +226,10 @@ Mode 5 trains a new 100-output random forest with random seed `42` from the bund
 ```bash
 python main.py -mode 5 -config_path configs/config_mode_5_template.yml
 ```
+
+Required config keys: `result_folder_path`.
+
+Optional config keys: `random_state` (default `42`), `pca_components` (fixed at `100` in the template), `test_size` (fixed at `0.3` in the template), `configure_logging` (default `true`). Keep the template defaults to reproduce the reported benchmark.
 
 The current reference run reports:
 
@@ -318,7 +323,7 @@ Relative paths in a YAML file are resolved from the current working directory. R
 
 ## Python API
 
-Every mode is callable from Python or Jupyter with a configuration mapping or YAML path. Run these examples from the repository root:
+Every mode is callable from Python or Jupyter with a configuration mapping or YAML path. All workflow parameters accepted by `run_mode()` can be supplied in that config; explicit keyword arguments are optional overrides and take precedence over matching config keys. Run these examples from the repository root:
 
 ```python
 from pathlib import Path
@@ -363,6 +368,9 @@ run_mode(
     pure_threshold=0.87,
 )
 ```
+
+The same values can also be placed directly in the config mapping or YAML file
+as `model_path`, `scaler_path`, `prediction_model_type`, and `pure_threshold`.
 
 ### Mode 2
 

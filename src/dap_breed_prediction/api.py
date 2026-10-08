@@ -27,6 +27,8 @@ _UNSET = object()
 
 def load_config(config):
     """Return a mutable config dictionary from a mapping or YAML path."""
+    if config is None:
+        return {}
     if isinstance(config, Mapping):
         return dict(config)
 
@@ -82,19 +84,28 @@ def _require(config, mode, *keys):
 
 def run_mode(
     mode,
-    config,
+    config=None,
     *,
     base_dir=None,
-    configure_logging=True,
-    model_path=None,
-    prediction_model_path=None,
-    pretrained_model_name=None,
-    prediction_model_type=None,
-    scaler_path=None,
-    pca_model_path=None,
-    model_input_scaler_path=None,
-    training_model_name=None,
-    xgboost_device=None,
+    configure_logging=_UNSET,
+    result_folder_path=_UNSET,
+    SNP_csv_path=_UNSET,
+    label_path=_UNSET,
+    breed_list_text_path=_UNSET,
+    model_path=_UNSET,
+    prediction_model_path=_UNSET,
+    model_metadata_path=_UNSET,
+    pretrained_model_name=_UNSET,
+    prediction_model_type=_UNSET,
+    scaler_path=_UNSET,
+    pca_model_path=_UNSET,
+    model_input_scaler_path=_UNSET,
+    pca_components=_UNSET,
+    random_state=_UNSET,
+    test_size=_UNSET,
+    include_unknown=_UNSET,
+    training_model_name=_UNSET,
+    xgboost_device=_UNSET,
     pure_threshold=_UNSET,
 ):
     """Run one pipeline mode from Python.
@@ -103,19 +114,27 @@ def run_mode(
     ----------
     mode : int
         Pipeline mode from 1 through 5.
-    config : Mapping or path-like
-        Configuration dictionary or YAML file path.
+    config : Mapping or path-like, optional
+        Configuration dictionary or YAML file path. Any mode-specific pipeline
+        parameter can be supplied in this configuration. Explicit keyword
+        arguments to ``run_mode`` override matching configuration values.
     base_dir : path-like, optional
         Directory used to resolve relative paths in the configuration. Defaults
         to the current working directory, matching command-line behavior.
-    configure_logging : bool, default=True
-        Write ``process.log`` and emit pipeline logs to the console.
+    configure_logging : bool, optional
+        Write ``process.log`` and emit pipeline logs to the console. Defaults
+        to ``True`` when omitted from both the configuration and keyword
+        arguments.
+    result_folder_path, SNP_csv_path, label_path, breed_list_text_path : path-like, optional
+        Direct path overrides for the corresponding configuration keys.
     model_path, prediction_model_path : path-like, optional
         Direct model path override. ``model_path`` is a convenience alias for
         ``prediction_model_path``. Relative paths are resolved against
         ``base_dir``. For Mode 1 custom PCA100 models, also provide
         ``pure_threshold`` and optionally ``prediction_model_type`` and
         ``scaler_path``.
+    model_metadata_path : path-like, optional
+        Direct metadata sidecar override for Mode 3.
     pretrained_model_name : str, optional
         Bundled Mode 1 model registry key, such as ``random_forest`` or
         ``xgboost``.
@@ -126,6 +145,9 @@ def run_mode(
     model_input_scaler_path : path-like, optional
         Optional scaler applied after any raw-feature scaler/PCA and before the
         prediction model.
+    pca_components, random_state, test_size, include_unknown : optional
+        Direct training and data-selection overrides for modes that use those
+        settings.
     training_model_name : str, optional
         Mode 4 training backend. Available values are ``random_forest``,
         ``xgboost``, ``ridge``, ``knn``, ``extratrees``, ``mlp``, and
@@ -147,36 +169,53 @@ def run_mode(
     if mode not in range(1, 6):
         raise ValueError("Mode must be an integer from 1 through 5.")
 
-    if model_path is not None and prediction_model_path is not None:
+    if (
+        model_path is not _UNSET
+        and prediction_model_path is not _UNSET
+        and model_path is not None
+        and prediction_model_path is not None
+    ):
         raise ValueError("Use either model_path or prediction_model_path, not both.")
 
     loaded = load_config(config)
-    if model_path is not None:
-        loaded["model_path"] = model_path
-    if prediction_model_path is not None:
-        loaded["prediction_model_path"] = prediction_model_path
-    if pretrained_model_name is not None:
-        loaded["pretrained_model_name"] = pretrained_model_name
-    if prediction_model_type is not None:
-        loaded["prediction_model_type"] = prediction_model_type
-    if scaler_path is not None:
-        loaded["scaler_path"] = scaler_path
-    if pca_model_path is not None:
-        loaded["pca_model_path"] = pca_model_path
-    if model_input_scaler_path is not None:
-        loaded["model_input_scaler_path"] = model_input_scaler_path
-    if training_model_name is not None:
-        loaded["training_model_name"] = training_model_name
-    if xgboost_device is not None:
-        loaded["xgboost_device"] = xgboost_device
-    if pure_threshold is not _UNSET:
-        loaded["pure_threshold"] = pure_threshold
+
+    if model_path is not _UNSET and model_path is not None:
+        loaded.pop("prediction_model_path", None)
+    if prediction_model_path is not _UNSET and prediction_model_path is not None:
+        loaded.pop("model_path", None)
+
+    overrides = {
+        "configure_logging": configure_logging,
+        "result_folder_path": result_folder_path,
+        "SNP_csv_path": SNP_csv_path,
+        "label_path": label_path,
+        "breed_list_text_path": breed_list_text_path,
+        "model_path": model_path,
+        "prediction_model_path": prediction_model_path,
+        "model_metadata_path": model_metadata_path,
+        "pretrained_model_name": pretrained_model_name,
+        "prediction_model_type": prediction_model_type,
+        "scaler_path": scaler_path,
+        "pca_model_path": pca_model_path,
+        "model_input_scaler_path": model_input_scaler_path,
+        "pca_components": pca_components,
+        "random_state": random_state,
+        "test_size": test_size,
+        "include_unknown": include_unknown,
+        "training_model_name": training_model_name,
+        "xgboost_device": xgboost_device,
+        "pure_threshold": pure_threshold,
+    }
+    for key, value in overrides.items():
+        if value is not _UNSET:
+            loaded[key] = value
 
     base_dir = Path.cwd() if base_dir is None else Path(base_dir)
     resolved = _resolve_config_paths(loaded, base_dir)
     _require(resolved, mode, "result_folder_path")
 
     result_path = Path(resolved["result_folder_path"])
+    configure_logging = resolved.get("configure_logging", True)
     logger = setup_logger(result_path) if configure_logging else logging.getLogger(__name__)
     logger.info("Running DAP breed-prediction Mode %s", mode)
 
@@ -273,9 +312,9 @@ def run_mode(
         pipeline.full_training_pipeline(
             result_folder_path=str(result_path),
             breed_list_text_path="reproduce",
-            pca_components=100,
-            random_state=42,
-            test_size=0.3,
+            pca_components=resolved.get("pca_components", 100),
+            random_state=resolved.get("random_state", 42),
+            test_size=resolved.get("test_size", 0.3),
         )
 
     return result_path
