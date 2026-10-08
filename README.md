@@ -221,6 +221,28 @@ Mode 5 uses:
 
 Training is CPU-only. The wall-clock time above measures only the Mode 5 command after dependencies were installed.
 
+### Alternative Model Comparison
+
+The comparison below uses the same 70/30 split-specific PCA100 representation
+and the same purity-threshold post-processing as Mode 5. Timings were recorded
+on an Intel(R) Xeon(R) Platinum 8380 CPU node with 80 logical CPUs and one
+NVIDIA A100-PCIE-40GB GPU. Train is model-fitting time; infer combines
+train-set prediction for threshold selection and held-out test-set prediction.
+In the paper, we discuss the CPU best model, **Random Forest**, because CPU-only
+execution is broadly accessible for researchers with limited computing
+resources. **XGBoost** is the best GPU-backed model in this comparison and can
+be analyzed in a very similar way.
+
+| Model | Threshold (theta) | Strict | Loose | Hardware | Train | Infer | Total |
+|---|---:|---:|---:|---|---:|---:|---:|
+| MLP | 0.97 | 36.08% | 93.23% | GPU, A100 | 21.93s | 0.60s | 22.53s |
+| ExtraTrees | 0.99 | 35.07% | 93.03% | CPU | 6.16s | 0.31s | 6.47s |
+| **XGBoost** | 0.69 | 59.32% | 92.77% | GPU, A100 | 16.32s | 0.85s | 17.17s |
+| Ridge | 0.87 | 48.51% | 92.02% | CPU | 0.32s | 0.10s | 0.43s |
+| KNN | 0.99 | 39.36% | 91.76% | CPU | 0.01s | 6.53s | 6.54s |
+| **Random Forest** | 0.70 | 58.67% | 91.71% | CPU | 273.02s | 2.36s | 275.38s |
+| Transformer | 0.97 | 47.15% | 90.60% | GPU, A100 | 18.00s | 0.61s | 18.60s |
+
 ## Reproduce The Paper Figures
 
 The [executed figure notebook](notebooks/reproduce_selected_paper_figures.ipynb) contains the calculations and saved outputs for Fig. 2b, Fig. 2c, Fig. 2e, Fig. 3b, Fig. 3c, Fig. 3d, Fig. 3e, Fig. 3f, and Fig. 3h. It uses the archived 10-class small model for Fig. 2c and does not retrain that model. Required inputs are under `Figure_data/` or elsewhere in the repository.
