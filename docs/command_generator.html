@@ -1,0 +1,539 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DAP Breed Prediction Command Generator</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f8fa;
+      --surface: #ffffff;
+      --text: #1f2933;
+      --muted: #5b6778;
+      --line: #d8dee8;
+      --accent: #0f766e;
+      --accent-strong: #115e59;
+      --code: #111827;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.45;
+    }
+    header,
+    main {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+    header {
+      padding: 28px 0 18px;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 30px;
+      font-weight: 750;
+      letter-spacing: 0;
+    }
+    h2 {
+      margin: 0 0 14px;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+    p {
+      margin: 0;
+      color: var(--muted);
+    }
+    section {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+      margin: 0 0 16px;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(280px, 0.9fr) minmax(360px, 1.1fr);
+      gap: 16px;
+      align-items: start;
+    }
+    .question {
+      border-top: 1px solid var(--line);
+      padding-top: 14px;
+      margin-top: 14px;
+    }
+    .question:first-of-type {
+      border-top: 0;
+      padding-top: 0;
+      margin-top: 0;
+    }
+    .question-title {
+      display: block;
+      font-weight: 650;
+      margin-bottom: 8px;
+    }
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .choice {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      font-weight: 500;
+      margin: 6px 0;
+    }
+    .choice input {
+      width: 16px;
+      height: 16px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .field {
+      min-width: 0;
+    }
+    input[type="text"],
+    input[type="number"],
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 9px 10px;
+      font: inherit;
+      background: #fff;
+      color: var(--text);
+    }
+    input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+    }
+    textarea {
+      min-height: 260px;
+      resize: vertical;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      color: var(--code);
+    }
+    .full {
+      grid-column: 1 / -1;
+    }
+    .hint {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .selected-mode {
+      display: inline-block;
+      margin-top: 14px;
+      border: 1px solid #99d7cf;
+      background: #e6fffb;
+      color: #134e4a;
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-weight: 700;
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    button {
+      border: 1px solid var(--accent);
+      background: var(--accent);
+      color: #fff;
+      border-radius: 6px;
+      padding: 9px 12px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button.secondary {
+      background: #fff;
+      color: var(--accent-strong);
+    }
+    code,
+    pre {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    }
+    pre {
+      background: #f1f5f9;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 12px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    @media (max-width: 860px) {
+      .layout,
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>DAP Breed Prediction Command Generator</h1>
+    <p>Answer the decision tree, review the mode-specific options, then copy the generated YAML and CLI command.</p>
+  </header>
+
+  <main class="layout">
+    <div>
+      <section>
+        <h2>1. Choose Workflow</h2>
+        <div class="question">
+          <span class="question-title">Do you want to reproduce the fixed paper benchmark?</span>
+          <label class="choice"><input type="radio" name="paper" value="yes"> Yes, reproduce paper results</label>
+          <label class="choice"><input type="radio" name="paper" value="no" checked> No</label>
+        </div>
+        <div class="question" id="train-question">
+          <span class="question-title">Do you need to train or retrain a model?</span>
+          <label class="choice"><input type="radio" name="train" value="yes"> Yes</label>
+          <label class="choice"><input type="radio" name="train" value="no" checked> No</label>
+        </div>
+        <div class="question" id="training-source-question">
+          <span class="question-title">What training data do you want to use?</span>
+          <label class="choice"><input type="radio" name="trainingSource" value="own" checked> My own labeled X/Y dataset</label>
+          <label class="choice"><input type="radio" name="trainingSource" value="dap"> DAP-backed retraining using overlapping SNPs</label>
+        </div>
+        <div class="question" id="inference-question">
+          <span class="question-title">What kind of inference do you want?</span>
+          <label class="choice"><input type="radio" name="inference" value="pretrained" checked> Bundled pretrained 100-class model for one full-SNP sample</label>
+          <label class="choice"><input type="radio" name="inference" value="saved"> Saved Mode 2 or Mode 4 model on exact-schema SNP data</label>
+        </div>
+        <div class="selected-mode" id="selected-mode"></div>
+      </section>
+
+      <section>
+        <h2>2. Configure Selected Mode</h2>
+        <div id="fields" class="grid"></div>
+      </section>
+    </div>
+
+    <div>
+      <section>
+        <h2>3. Generated YAML</h2>
+        <label for="config-path">YAML config path</label>
+        <input id="config-path" type="text">
+        <div class="hint">Use this path in the generated CLI command.</div>
+        <textarea id="yaml-output" spellcheck="false" readonly></textarea>
+        <div class="actions">
+          <button type="button" id="copy-yaml">Copy YAML</button>
+          <button type="button" id="download-yaml" class="secondary">Download YAML</button>
+        </div>
+      </section>
+
+      <section>
+        <h2>4. Run This Command</h2>
+        <pre id="command-output"></pre>
+        <div class="actions">
+          <button type="button" id="copy-command">Copy Command</button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const modelChoices = ["random_forest", "xgboost", "ridge", "knn", "extratrees", "mlp", "transformer"];
+    const defaults = {
+      1: {
+        result_folder_path: "./results/mode_1",
+        SNP_csv_path: "./data/Toy_X_full_54143_single.csv",
+        pretrained_model_name: "random_forest",
+        prediction_model_path: null,
+        model_path: null,
+        prediction_model_type: null,
+        scaler_path: null,
+        pca_model_path: null,
+        pure_threshold: null,
+        configure_logging: true
+      },
+      2: {
+        result_folder_path: "./results/mode_2",
+        SNP_csv_path: "./data/Toy_X_single.csv",
+        breed_list_text_path: "./data/paper_14_breed_list.txt",
+        include_unknown: false,
+        pca_components: 0.95,
+        random_state: 42,
+        pure_threshold: null,
+        configure_logging: true
+      },
+      3: {
+        result_folder_path: "./results/mode_3",
+        prediction_model_path: "./results/mode_2/Model/Prediction_model_theta_0.62.pkl",
+        model_path: null,
+        model_metadata_path: "./results/mode_2/Model/model_metadata.json",
+        SNP_csv_path: "./data/Toy_X_single.csv",
+        pure_threshold: 0.62,
+        prediction_model_type: null,
+        scaler_path: null,
+        pca_model_path: null,
+        model_input_scaler_path: null,
+        label_path: null,
+        configure_logging: true
+      },
+      4: {
+        result_folder_path: "./results/mode_4",
+        SNP_csv_path: "./data/Toy_X_snps.csv",
+        breed_list_text_path: "./data/Toy_a_short_breed_list.txt",
+        label_path: "./data/Toy_Y_labels.csv",
+        training_model_name: "random_forest",
+        xgboost_device: "auto",
+        pca_components: 0.95,
+        random_state: 42,
+        test_size: 0.3,
+        configure_logging: true
+      },
+      5: {
+        result_folder_path: "./results/mode_5",
+        random_state: 42,
+        pca_components: 100,
+        test_size: 0.3,
+        configure_logging: true
+      }
+    };
+
+    const fieldDefs = {
+      1: [
+        ["result_folder_path", "Result folder path", "text"],
+        ["SNP_csv_path", "Input SNP CSV path", "text"],
+        ["pretrained_model_name", "Bundled pretrained model", "select", modelChoices],
+        ["prediction_model_path", "Custom prediction model path", "nullableText"],
+        ["model_path", "Model path alias", "nullableText"],
+        ["prediction_model_type", "Prediction model type", "selectNullable", ["sklearn", "torch_mlp", "torch_transformer"]],
+        ["scaler_path", "Model-input scaler path", "nullableText"],
+        ["pca_model_path", "PCA model path", "nullableText"],
+        ["pure_threshold", "Pure threshold override", "nullableNumber"],
+        ["configure_logging", "Write logs", "checkbox"]
+      ],
+      2: [
+        ["result_folder_path", "Result folder path", "text"],
+        ["SNP_csv_path", "Input SNP CSV path", "text"],
+        ["breed_list_text_path", "Breed-list text path", "nullableText"],
+        ["include_unknown", "Include Unknown class", "checkbox"],
+        ["pca_components", "PCA components or variance fraction", "number"],
+        ["random_state", "Random seed", "integer"],
+        ["pure_threshold", "Accepted but ignored by Mode 2", "nullableNumber"],
+        ["configure_logging", "Write logs", "checkbox"]
+      ],
+      3: [
+        ["result_folder_path", "Result folder path", "text"],
+        ["SNP_csv_path", "Input SNP CSV path", "text"],
+        ["prediction_model_path", "Prediction model path", "text"],
+        ["model_path", "Model path alias", "nullableText"],
+        ["model_metadata_path", "Model metadata path", "text"],
+        ["pure_threshold", "Pure threshold", "number"],
+        ["prediction_model_type", "Prediction model type override", "selectNullable", ["sklearn", "torch_mlp", "torch_transformer"]],
+        ["scaler_path", "Raw-feature scaler path", "nullableText"],
+        ["pca_model_path", "PCA model path", "nullableText"],
+        ["model_input_scaler_path", "Model-input scaler path", "nullableText"],
+        ["label_path", "Label CSV path", "nullableText"],
+        ["configure_logging", "Write logs", "checkbox"]
+      ],
+      4: [
+        ["result_folder_path", "Result folder path", "text"],
+        ["SNP_csv_path", "Training SNP CSV path", "text"],
+        ["label_path", "Training label CSV path", "text"],
+        ["breed_list_text_path", "Breed-list text path", "nullableText"],
+        ["training_model_name", "Training model", "select", modelChoices],
+        ["xgboost_device", "XGBoost device", "select", ["auto", "cpu", "cuda"]],
+        ["pca_components", "PCA components or variance fraction", "number"],
+        ["random_state", "Random seed", "integer"],
+        ["test_size", "Held-out test fraction", "number"],
+        ["configure_logging", "Write logs", "checkbox"]
+      ],
+      5: [
+        ["result_folder_path", "Result folder path", "text"],
+        ["random_state", "Random seed", "integer"],
+        ["pca_components", "PCA components", "integer"],
+        ["test_size", "Held-out test fraction", "number"],
+        ["configure_logging", "Write logs", "checkbox"]
+      ]
+    };
+
+    let currentMode = null;
+    let fieldState = {};
+
+    function checkedValue(name) {
+      const node = document.querySelector(`input[name="${name}"]:checked`);
+      return node ? node.value : null;
+    }
+
+    function selectedMode() {
+      if (checkedValue("paper") === "yes") return 5;
+      if (checkedValue("train") === "yes") {
+        return checkedValue("trainingSource") === "own" ? 4 : 2;
+      }
+      return checkedValue("inference") === "pretrained" ? 1 : 3;
+    }
+
+    function setQuestionVisibility() {
+      const paper = checkedValue("paper");
+      const train = checkedValue("train");
+      document.getElementById("train-question").style.display = paper === "yes" ? "none" : "block";
+      document.getElementById("training-source-question").style.display = paper === "no" && train === "yes" ? "block" : "none";
+      document.getElementById("inference-question").style.display = paper === "no" && train === "no" ? "block" : "none";
+    }
+
+    function renderFields(mode) {
+      const fields = document.getElementById("fields");
+      fields.innerHTML = "";
+      const base = structuredClone(defaults[mode]);
+      fieldState = Object.assign(base, fieldState.mode === mode ? fieldState.values : {});
+      fieldState = { mode, values: fieldState };
+      for (const [key, label, type, choices] of fieldDefs[mode]) {
+        const wrapper = document.createElement("div");
+        wrapper.className = "field";
+        const labelNode = document.createElement("label");
+        labelNode.htmlFor = `field-${key}`;
+        labelNode.textContent = label;
+        wrapper.appendChild(labelNode);
+        const value = fieldState.values[key];
+        let input;
+        if (type === "select" || type === "selectNullable") {
+          input = document.createElement("select");
+          if (type === "selectNullable") {
+            const option = document.createElement("option");
+            option.value = "";
+            option.textContent = "null";
+            input.appendChild(option);
+          }
+          for (const choice of choices) {
+            const option = document.createElement("option");
+            option.value = choice;
+            option.textContent = choice;
+            input.appendChild(option);
+          }
+          input.value = value ?? "";
+        } else if (type === "checkbox") {
+          input = document.createElement("input");
+          input.type = "checkbox";
+          input.checked = Boolean(value);
+        } else {
+          input = document.createElement("input");
+          input.type = type === "text" || type === "nullableText" ? "text" : "number";
+          if (type === "number" || type === "nullableNumber") input.step = "any";
+          if (type === "integer") input.step = "1";
+          input.value = value ?? "";
+        }
+        input.id = `field-${key}`;
+        input.dataset.key = key;
+        input.dataset.type = type;
+        input.addEventListener("input", updateOutput);
+        input.addEventListener("change", updateOutput);
+        wrapper.appendChild(input);
+        if (type === "nullableText" || type === "nullableNumber" || type === "selectNullable") {
+          const hint = document.createElement("div");
+          hint.className = "hint";
+          hint.textContent = "Leave blank to write null.";
+          wrapper.appendChild(hint);
+        }
+        fields.appendChild(wrapper);
+      }
+    }
+
+    function readValue(input) {
+      const type = input.dataset.type;
+      if (type === "checkbox") return input.checked;
+      if (type === "nullableText" || type === "selectNullable") {
+        return input.value.trim() === "" ? null : input.value.trim();
+      }
+      if (type === "nullableNumber") {
+        return input.value.trim() === "" ? null : Number(input.value);
+      }
+      if (type === "number") return Number(input.value);
+      if (type === "integer") return parseInt(input.value, 10);
+      return input.value;
+    }
+
+    function collectConfig() {
+      const config = {};
+      for (const input of document.querySelectorAll("#fields input, #fields select")) {
+        config[input.dataset.key] = readValue(input);
+      }
+      if (config.model_path) config.prediction_model_path = null;
+      if (config.prediction_model_path) config.model_path = null;
+      if (config.model_path || config.prediction_model_path) {
+        config.pretrained_model_name = null;
+      }
+      return config;
+    }
+
+    function yamlScalar(value) {
+      if (value === null || value === undefined || value === "") return "null";
+      if (typeof value === "boolean") return value ? "true" : "false";
+      if (typeof value === "number") return Number.isFinite(value) ? String(value) : "null";
+      return JSON.stringify(String(value));
+    }
+
+    function toYaml(config) {
+      return Object.entries(config).map(([key, value]) => `${key}: ${yamlScalar(value)}`).join("\n") + "\n";
+    }
+
+    function shellQuote(value) {
+      const text = String(value);
+      if (/^[A-Za-z0-9_@%+=:,./-]+$/.test(text)) return text;
+      return "'" + text.replace(/'/g, "'\\''") + "'";
+    }
+
+    function updateOutput() {
+      setQuestionVisibility();
+      const mode = selectedMode();
+      if (mode !== currentMode) {
+        currentMode = mode;
+        fieldState = {};
+        renderFields(mode);
+      }
+      document.getElementById("selected-mode").textContent = `Selected Mode ${mode}`;
+      const config = collectConfig();
+      const configPath = document.getElementById("config-path");
+      if (!configPath.dataset.userEdited) {
+        configPath.value = `configs/generated_mode_${mode}.yml`;
+      }
+      document.getElementById("yaml-output").value = toYaml(config);
+      document.getElementById("command-output").textContent =
+        `python main.py -mode ${mode} -config_path ${shellQuote(configPath.value)}`;
+    }
+
+    function copyText(id) {
+      const element = document.getElementById(id);
+      const text = element.value !== undefined ? element.value : element.textContent;
+      navigator.clipboard.writeText(text);
+    }
+
+    function downloadYaml() {
+      const path = document.getElementById("config-path").value || "generated_config.yml";
+      const name = path.split(/[\\/]/).pop() || "generated_config.yml";
+      const blob = new Blob([document.getElementById("yaml-output").value], { type: "text/yaml" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = name;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    }
+
+    document.querySelectorAll('input[type="radio"]').forEach(node => {
+      node.addEventListener("change", updateOutput);
+    });
+    document.getElementById("config-path").addEventListener("input", event => {
+      event.target.dataset.userEdited = "true";
+      updateOutput();
+    });
+    document.getElementById("copy-yaml").addEventListener("click", () => copyText("yaml-output"));
+    document.getElementById("copy-command").addEventListener("click", () => copyText("command-output"));
+    document.getElementById("download-yaml").addEventListener("click", downloadYaml);
+    updateOutput();
+  </script>
+</body>
+</html>

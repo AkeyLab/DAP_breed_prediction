@@ -325,6 +325,34 @@ Relative paths in a YAML file are resolved from the current working directory. R
 
 The repository includes a small command generator, similar in spirit to the selector on the PyTorch install page: choose the mode and options, and it writes the YAML file plus the command to run it.
 
+```mermaid
+flowchart TD
+    A{Reproduce the paper benchmark?}
+    A -- Yes --> M5[Mode 5]
+    A -- No --> B{Train or retrain a model?}
+    B -- Yes --> C{Use only your own labeled X/Y data?}
+    C -- Yes --> M4[Mode 4]
+    C -- No --> M2[Mode 2]
+    B -- No --> D{Use a bundled pretrained 100-class model?}
+    D -- Yes --> M1[Mode 1]
+    D -- No --> M3[Mode 3]
+```
+
+For a browser-based decision tree, open
+[`docs/command_generator.html`](docs/command_generator.html) locally in a
+browser, or serve it through GitHub Pages if Pages is enabled for the repo. It
+asks whether you want to reproduce the paper benchmark, train a model, run a
+bundled pretrained model, or run a saved model, then generates the YAML and
+command.
+
+For the same decision tree in a terminal, run:
+
+```bash
+python scripts/generate_run_command.py --interactive --force
+```
+
+You can also provide choices directly as flags:
+
 ```bash
 python scripts/generate_run_command.py \
   --mode 4 \
