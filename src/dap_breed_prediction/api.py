@@ -19,6 +19,7 @@ PATH_KEYS = (
     "model_metadata_path",
     "scaler_path",
     "pca_model_path",
+    "model_input_scaler_path",
 )
 
 _UNSET = object()
@@ -91,6 +92,9 @@ def run_mode(
     prediction_model_type=None,
     scaler_path=None,
     pca_model_path=None,
+    model_input_scaler_path=None,
+    training_model_name=None,
+    xgboost_device=None,
     pure_threshold=_UNSET,
 ):
     """Run one pipeline mode from Python.
@@ -119,6 +123,15 @@ def run_mode(
         Inference backend for a custom Mode 1 model. Defaults to ``sklearn``.
     scaler_path, pca_model_path : path-like, optional
         Optional direct preprocessing artifact overrides.
+    model_input_scaler_path : path-like, optional
+        Optional scaler applied after any raw-feature scaler/PCA and before the
+        prediction model.
+    training_model_name : str, optional
+        Mode 4 training backend. Available values are ``random_forest``,
+        ``xgboost``, ``ridge``, ``knn``, ``extratrees``, ``mlp``, and
+        ``transformer``.
+    xgboost_device : {"auto", "cpu", "cuda"}, optional
+        Device setting used when Mode 4 trains XGBoost.
     pure_threshold : float, optional
         Direct pure-versus-mixed threshold override.
 
@@ -150,6 +163,12 @@ def run_mode(
         loaded["scaler_path"] = scaler_path
     if pca_model_path is not None:
         loaded["pca_model_path"] = pca_model_path
+    if model_input_scaler_path is not None:
+        loaded["model_input_scaler_path"] = model_input_scaler_path
+    if training_model_name is not None:
+        loaded["training_model_name"] = training_model_name
+    if xgboost_device is not None:
+        loaded["xgboost_device"] = xgboost_device
     if pure_threshold is not _UNSET:
         loaded["pure_threshold"] = pure_threshold
 
@@ -171,6 +190,8 @@ def run_mode(
     pure_threshold = resolved.get("pure_threshold")
     pretrained_model_name = resolved.get("pretrained_model_name")
     prediction_model_type = resolved.get("prediction_model_type")
+    training_model_name = resolved.get("training_model_name", "random_forest")
+    xgboost_device = resolved.get("xgboost_device", "auto")
     if resolved.get("model_path") and resolved.get("prediction_model_path"):
         raise ValueError("Use either model_path or prediction_model_path, not both.")
     selected_model_path = resolved.get("prediction_model_path") or resolved.get("model_path")
@@ -229,6 +250,8 @@ def run_mode(
             model_metadata_path=resolved.get("model_metadata_path"),
             scaler_path=resolved.get("scaler_path"),
             pca_model_path=resolved.get("pca_model_path"),
+            model_input_scaler_path=resolved.get("model_input_scaler_path"),
+            prediction_model_type=prediction_model_type,
             pure_threshold=resolved["pure_threshold"],
             label_path=label_path,
             require_exact_features=True,
@@ -243,6 +266,8 @@ def run_mode(
             pca_components=pca_components,
             random_state=random_state,
             test_size=test_size,
+            training_model_name=training_model_name,
+            xgboost_device=xgboost_device,
         )
     else:
         pipeline.full_training_pipeline(

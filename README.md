@@ -182,7 +182,7 @@ Remove `breed_list_text_path` from the YAML to retrain all 100 outputs. The toy 
 
 **Designed for:** Multi-sample prediction with a model produced by Mode 2 or Mode 4, or performance analysis when labels are also available.
 
-Mode 3 does not train a model and does not load DAP reference genotypes. Supply the random-forest path, its purity threshold, its `model_metadata.json` sidecar, and a new genotype CSV. The genotype columns must match the exact SNP set recorded in the metadata; columns are reordered safely when names match, while missing or extra SNPs produce an error. The metadata also locates any saved scaler and PCA.
+Mode 3 does not train a model and does not load DAP reference genotypes. Supply the model path, its purity threshold, its `model_metadata.json` sidecar, and a new genotype CSV. The genotype columns must match the exact SNP set recorded in the metadata; columns are reordered safely when names match, while missing or extra SNPs produce an error. The metadata also locates any saved scaler, PCA, and model-input scaler.
 
 When `label_path` is omitted, Mode 3 writes predictions only. When labels are provided, it also calculates strict and loose accuracy and writes per-sample, per-section, and per-class results plus a confusion map.
 
@@ -196,7 +196,7 @@ python main.py -mode 3 -config_path configs/config_mode_3_template.yml
 
 Required config keys: `result_folder_path`, `SNP_csv_path`, `prediction_model_path`, `pure_threshold`.
 
-Optional config keys: `model_metadata_path` (automatically sought beside the model), `scaler_path`, `pca_model_path`, `label_path`.
+Optional config keys: `model_metadata_path` (automatically sought beside the model), `scaler_path`, `pca_model_path`, `model_input_scaler_path`, `prediction_model_type`, `label_path`.
 
 The label CSV must contain `dog_id` and `label`. Use `BreedName` for a pure dog and `BreedA / BreedB` for a two-breed mix.
 
@@ -204,7 +204,7 @@ The label CSV must contain `dog_id` and `label`. Use `BreedName` for a pure dog 
 
 **Designed for:** Training and evaluating the framework on a user-owned labeled dataset with no DAP data involved.
 
-Mode 4 reads the supplied X and Y files, creates a train/test split, optionally standardizes and applies PCA, trains a random forest, selects a purity threshold on the training split, and evaluates the held-out split. It saves the fitted model, optional scaler/PCA, and `model_metadata.json`, so the resulting model can be used directly by Mode 3.
+Mode 4 reads the supplied X and Y files, creates a train/test split, optionally standardizes and applies PCA, trains the selected prediction model, selects a purity threshold on the training split, and evaluates the held-out split. It saves the fitted model, optional raw-feature scaler/PCA, optional model-input scaler, and `model_metadata.json`, so the resulting model can be used directly by Mode 3.
 
 ```bash
 python main.py -mode 4 -config_path configs/config_mode_4_template.yml
@@ -212,7 +212,9 @@ python main.py -mode 4 -config_path configs/config_mode_4_template.yml
 
 Required config keys: `result_folder_path`, `SNP_csv_path`, `label_path`.
 
-Optional config keys: `breed_list_text_path`, `pca_components` (default `0.95` when PCA is triggered), `random_state` (default `42`), `test_size` (default `0.3`).
+Optional config keys: `breed_list_text_path`, `training_model_name` (default `random_forest`; options: `random_forest`, `xgboost`, `ridge`, `knn`, `extratrees`, `mlp`, `transformer`), `xgboost_device` (`auto`, `cpu`, or `cuda`), `pca_components` (default `0.95` when PCA is triggered), `random_state` (default `42`), `test_size` (default `0.3`).
+
+`ridge`, `knn`, `mlp`, and `transformer` fit an additional model-input scaler after any PCA step. XGBoost and PyTorch-based models require `python -m pip install -e ".[alternative-models]"`.
 
 ## Mode 5: Reproduce The Paper Benchmark
 
@@ -410,6 +412,7 @@ mode_4_config = {
     "SNP_csv_path": "./data/Toy_X_snps.csv",
     "label_path": "./data/Toy_Y_labels.csv",
     "breed_list_text_path": "./data/Toy_a_short_breed_list.txt",
+    "training_model_name": "random_forest",
     "pca_components": 0.95,
     "random_state": 42,
     "test_size": 0.3,
@@ -417,6 +420,10 @@ mode_4_config = {
 
 mode_4_results = run_mode(4, mode_4_config, base_dir=REPO_ROOT)
 ```
+
+To train a different Mode 4 backend, change only `training_model_name`; for
+example use `"ridge"` or `"extratrees"` for CPU-only alternatives, or
+`"xgboost"` with `"xgboost_device": "cuda"` when GPU acceleration is available.
 
 ### Mode 5
 

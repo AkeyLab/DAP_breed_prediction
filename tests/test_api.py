@@ -31,6 +31,8 @@ class RunModeTests(unittest.TestCase):
             "include_unknown": False,
             "pretrained_model_name": "xgboost",
             "prediction_model_type": "sklearn",
+            "training_model_name": "ridge",
+            "xgboost_device": "cpu",
         }
         config.update(updates)
         return config
@@ -182,7 +184,11 @@ class RunModeTests(unittest.TestCase):
     @patch("dap_breed_prediction.api.pipeline.inference")
     @patch("dap_breed_prediction.api.pipeline.train")
     def test_mode_3_accepts_model_path_alias(self, train, inference):
-        config = self.config(prediction_model_path=None, model_path="models/model_alias.pkl")
+        config = self.config(
+            prediction_model_path=None,
+            model_path="models/model_alias.pkl",
+            model_input_scaler_path="models/model_input_scaler.joblib",
+        )
         result = run_mode(3, config, base_dir=self.base_dir, configure_logging=False)
 
         self.assertEqual(result, self.base_dir / "results/test")
@@ -190,6 +196,10 @@ class RunModeTests(unittest.TestCase):
         self.assertEqual(
             inference.call_args.kwargs["prediction_model_path"],
             str(self.base_dir / "models/model_alias.pkl"),
+        )
+        self.assertEqual(
+            inference.call_args.kwargs["model_input_scaler_path"],
+            str(self.base_dir / "models/model_input_scaler.joblib"),
         )
 
     @patch("dap_breed_prediction.api.pipeline.full_training_pipeline")
@@ -200,6 +210,8 @@ class RunModeTests(unittest.TestCase):
         kwargs = full_training_pipeline.call_args.kwargs
         self.assertEqual(kwargs["SNP_csv_path"], str(self.base_dir / "data/snps.csv"))
         self.assertEqual(kwargs["label_path"], str(self.base_dir / "data/labels.csv"))
+        self.assertEqual(kwargs["training_model_name"], "ridge")
+        self.assertEqual(kwargs["xgboost_device"], "cpu")
 
     @patch("dap_breed_prediction.api.pipeline.full_training_pipeline")
     def test_mode_5_reproduces_paper(self, full_training_pipeline):

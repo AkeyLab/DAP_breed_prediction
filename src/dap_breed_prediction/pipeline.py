@@ -1,5 +1,6 @@
 import os
 import json
+import subprocess
 import pandas as pd
 import numpy as np
 import polars as pl
@@ -45,12 +46,46 @@ PCA_TRIGGER_PROPORTION = 0.35
 DEFAULT_INFERENCE_PURE_THRESHOLD = 0.7
 FULL_DAP_SNP_COUNT = 54143
 MODEL_METADATA_FILENAME = 'model_metadata.json'
+MODE4_TRAINING_MODELS = {
+    'random_forest',
+    'xgboost',
+    'ridge',
+    'knn',
+    'extratrees',
+    'mlp',
+    'transformer',
+}
 
 
 def _normalize_model_name(name):
     if name is None:
         return None
     return str(name).strip().lower().replace('-', '_').replace(' ', '_')
+
+
+def _normalize_training_model_name(name):
+    name = _normalize_model_name(name) or 'random_forest'
+    aliases = {
+        'rf': 'random_forest',
+        'randomforest': 'random_forest',
+        'random_forest': 'random_forest',
+        'xgb': 'xgboost',
+        'xgboost': 'xgboost',
+        'extra_trees': 'extratrees',
+        'extra_trees_regressor': 'extratrees',
+        'extratrees': 'extratrees',
+        'ridge': 'ridge',
+        'knn': 'knn',
+        'mlp': 'mlp',
+        'transformer': 'transformer',
+    }
+    normalized = aliases.get(name, name)
+    if normalized not in MODE4_TRAINING_MODELS:
+        raise ValueError(
+            f'Unknown training_model_name {name!r}. '
+            f'Available models: {sorted(MODE4_TRAINING_MODELS)}'
+        )
+    return normalized
 
 
 def _load_pretrained_model_registry():
@@ -145,7 +180,7 @@ def _optional_dependency_error(model_type, exc):
     raise ImportError(
         f'The selected pretrained model requires optional dependency {package!r}. '
         'Install it with `python -m pip install -e ".[alternative-models]"` '
-        'or choose `pretrained_model_name: random_forest`.'
+        'or choose the random_forest model.'
     ) from exc
 
 
@@ -309,17 +344,25 @@ def _write_model_metadata(
     pure_threshold,
     pca_model_path=None,
     scaler_path=None,
+    model_input_scaler_path=None,
+    model_type='sklearn',
+    model_name='random_forest',
     training_source='combined_dap_reference',
 ):
     metadata = {
-        'schema_version': 1,
+        'schema_version': 2,
         'training_source': training_source,
+        'model_name': model_name,
+        'model_type': model_type,
         'prediction_model_path': Path(prediction_model_path).name,
         'pure_threshold': pure_threshold,
         'class_names': list(selected_breeds),
         'snp_names': list(selected_snps),
         'pca_model_path': Path(pca_model_path).name if pca_model_path else None,
         'scaler_path': Path(scaler_path).name if scaler_path else None,
+        'model_input_scaler_path': (
+            Path(model_input_scaler_path).name if model_input_scaler_path else None
+        ),
     }
     metadata_path = Path(result_folder_path) / 'Model' / MODEL_METADATA_FILENAME
     metadata_path.write_text(json.dumps(metadata, indent=2) + '\n')
@@ -693,6 +736,8 @@ def inference(
     model_metadata_path=None,
     scaler_path=None,
     pca_model_path=None,
+    model_input_scaler_path=None,
+    prediction_model_type=None,
     require_exact_features=True,
 ):
     """Run a Mode 2/4 model with metadata-backed feature and class validation."""
@@ -702,6 +747,9 @@ def inference(
         candidates = sorted(glob.glob(
             f'{result_folder_path}/Model/Prediction_model_theta_*.pkl'
         ))
+        candidates.extend(sorted(glob.glob(
+            f'{result_folder_path}/Model/Prediction_model_*_theta_*'
+        )))
         if not candidates:
             raise FileNotFoundError('No prediction model was provided or found.')
         prediction_model_path = candidates[0]
@@ -745,6 +793,13 @@ def inference(
     pca_model_path = _resolve_model_sidecar(
         metadata_path, pca_model_path, model_metadata.get('pca_model_path')
     )
+    model_input_scaler_path = _resolve_model_sidecar(
+        metadata_path,
+        model_input_scaler_path,
+        model_metadata.get('model_input_scaler_path')
+    )
+    model_type = prediction_model_type or model_metadata.get('model_type', 'sklearn')
+    model_name = model_metadata.get('model_name', 'prediction model')
 
     X_model = X
     if scaler_path is not None:
@@ -757,11 +812,24 @@ def inference(
         logger.info(f'Loading the model PCA at {pca_model_path}')
         pca = joblib.load(pca_model_path)
         transformed = pca.transform(X_model)
-        X_model = pd.DataFrame(transformed, index=X.index)
+        columns = [f'PC{i}' for i in range(1, transformed.shape[1] + 1)]
+        X_model = pd.DataFrame(transformed, index=X.index, columns=columns)
+    if model_input_scaler_path is not None:
+        logger.info(f'Loading the model-input scaler at {model_input_scaler_path}')
+        model_input_scaler = joblib.load(model_input_scaler_path)
+        scaler_features = list(getattr(model_input_scaler, 'feature_names_in_', X_model.columns))
+        if list(X_model.columns) != scaler_features:
+            X_model = X_model.loc[:, scaler_features]
+        X_model = pd.DataFrame(
+            model_input_scaler.transform(X_model),
+            index=X_model.index,
+            columns=scaler_features,
+        )
 
-    logger.info(f'Loading the random forest at {prediction_model_path}')
-    regressor = joblib.load(prediction_model_path)
-    raw = regressor.predict(X_model)
+    logger.info(f'Loading the {model_name} model at {prediction_model_path}')
+    raw = _predict_pretrained_model(
+        prediction_model_path, model_type, X_model, len(class_names)
+    )
     if raw.shape[1] != len(class_names):
         raise ValueError(
             f'Model produced {raw.shape[1]} outputs but metadata defines '
@@ -839,6 +907,299 @@ def inference(
     }
 
 
+def _xgboost_device(device):
+    device = _normalize_model_name(device) or 'auto'
+    if device not in {'auto', 'cpu', 'cuda'}:
+        raise ValueError("xgboost_device must be one of: auto, cpu, cuda.")
+    if device != 'auto':
+        return device
+    try:
+        subprocess.run(
+            ['nvidia-smi'],
+            check=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        return 'cuda'
+    except (OSError, subprocess.CalledProcessError):
+        return 'cpu'
+
+
+def _pc_columns(width):
+    return [f'PC{i}' for i in range(1, width + 1)]
+
+
+def _scale_model_input_if_needed(
+    training_model_name,
+    X_train,
+    X_test,
+    result_folder_path,
+):
+    if training_model_name not in {'ridge', 'knn', 'mlp', 'transformer'}:
+        return X_train, X_test, None
+    from sklearn.preprocessing import StandardScaler
+    scaler = StandardScaler()
+    X_train_scaled = pd.DataFrame(
+        scaler.fit_transform(X_train),
+        index=X_train.index,
+        columns=X_train.columns,
+    )
+    X_test_scaled = pd.DataFrame(
+        scaler.transform(X_test),
+        index=X_test.index,
+        columns=X_test.columns,
+    )
+    path = f'{result_folder_path}/Model/{training_model_name}_model_input_scaler.joblib'
+    joblib.dump(scaler, path)
+    logger.info(f'Model-input scaler saved to {path}')
+    return X_train_scaled, X_test_scaled, path
+
+
+def _make_mode4_sklearn_model(training_model_name, random_state, xgboost_device, n_train):
+    if training_model_name == 'random_forest':
+        from sklearn.ensemble import RandomForestRegressor
+        from sklearn.multioutput import MultiOutputRegressor
+        return MultiOutputRegressor(
+            RandomForestRegressor(
+                n_estimators=100,
+                random_state=random_state,
+                n_jobs=-1,
+            )
+        )
+    if training_model_name == 'xgboost':
+        try:
+            import xgboost as xgb
+        except ModuleNotFoundError as exc:
+            _optional_dependency_error('xgboost', exc)
+        return xgb.XGBRegressor(
+            objective='reg:squarederror',
+            multi_strategy='one_output_per_tree',
+            n_estimators=200,
+            learning_rate=0.05,
+            max_depth=3,
+            subsample=0.85,
+            colsample_bytree=0.85,
+            tree_method='hist',
+            device=_xgboost_device(xgboost_device),
+            random_state=random_state,
+            n_jobs=-1,
+        )
+    if training_model_name == 'ridge':
+        from sklearn.linear_model import Ridge
+        return Ridge(alpha=10.0)
+    if training_model_name == 'knn':
+        from sklearn.neighbors import KNeighborsRegressor
+        n_neighbors = max(1, min(15, n_train))
+        return KNeighborsRegressor(n_neighbors=n_neighbors, weights='distance', n_jobs=-1)
+    if training_model_name == 'extratrees':
+        from sklearn.ensemble import ExtraTreesRegressor
+        return ExtraTreesRegressor(
+            n_estimators=300,
+            max_features=0.75,
+            min_samples_leaf=1,
+            random_state=random_state,
+            n_jobs=-1,
+        )
+    raise ValueError(f'{training_model_name} is not an sklearn Mode 4 model.')
+
+
+def _fit_torch_mode4_model(
+    training_model_name,
+    X_train,
+    X_test,
+    Y_train,
+    random_state,
+):
+    try:
+        import torch
+        from torch.utils.data import DataLoader, TensorDataset
+    except ModuleNotFoundError as exc:
+        _optional_dependency_error(f'torch_{training_model_name}', exc)
+
+    np.random.seed(random_state)
+    torch.manual_seed(random_state)
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    if device.type == 'cuda':
+        torch.cuda.manual_seed_all(random_state)
+        torch.backends.cudnn.benchmark = False
+
+    X_train_arr = X_train.to_numpy(dtype='float32')
+    X_test_arr = X_test.to_numpy(dtype='float32')
+    Y_train_arr = Y_train.to_numpy(dtype='float32')
+    if len(X_train_arr) >= 8:
+        from sklearn.model_selection import train_test_split
+        train_idx, val_idx = train_test_split(
+            np.arange(len(X_train_arr)),
+            test_size=0.15,
+            random_state=random_state,
+        )
+    else:
+        train_idx = np.arange(len(X_train_arr))
+        val_idx = np.arange(len(X_train_arr))
+
+    train_ds = TensorDataset(
+        torch.from_numpy(X_train_arr[train_idx]),
+        torch.from_numpy(Y_train_arr[train_idx]),
+    )
+    val_x = torch.from_numpy(X_train_arr[val_idx]).to(device)
+    val_y = torch.from_numpy(Y_train_arr[val_idx]).to(device)
+    loader = DataLoader(train_ds, batch_size=min(256, max(1, len(train_ds))), shuffle=True)
+
+    if training_model_name == 'mlp':
+        model = _make_torch_mlp(torch, X_train.shape[1], Y_train.shape[1]).to(device)
+        lr = 1e-3
+        epochs = 220
+        model_type = 'torch_mlp'
+    elif training_model_name == 'transformer':
+        model = _make_torch_transformer(torch, X_train.shape[1], Y_train.shape[1]).to(device)
+        lr = 8e-4
+        epochs = 220
+        model_type = 'torch_transformer'
+    else:
+        raise ValueError(f'{training_model_name} is not a torch Mode 4 model.')
+
+    optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-4)
+
+    def soft_target_ce(logits, target):
+        log_probs = torch.nn.functional.log_softmax(logits, dim=1)
+        return -(target * log_probs).sum(dim=1).mean()
+
+    patience = 30
+    best_state = None
+    best_val = float('inf')
+    best_epoch = -1
+    history = []
+    for epoch in range(1, epochs + 1):
+        model.train()
+        train_losses = []
+        for xb, yb in loader:
+            xb = xb.to(device)
+            yb = yb.to(device)
+            optimizer.zero_grad(set_to_none=True)
+            loss = soft_target_ce(model(xb), yb)
+            loss.backward()
+            optimizer.step()
+            train_losses.append(float(loss.detach().cpu()))
+        model.eval()
+        with torch.no_grad():
+            val_loss = float(soft_target_ce(model(val_x), val_y).detach().cpu())
+        history.append({
+            'epoch': epoch,
+            'train_loss': float(np.mean(train_losses)),
+            'val_loss': val_loss,
+        })
+        if val_loss < best_val - 1e-5:
+            best_val = val_loss
+            best_epoch = epoch
+            best_state = {key: value.detach().cpu().clone() for key, value in model.state_dict().items()}
+        elif epoch - best_epoch >= patience:
+            break
+    if best_state is not None:
+        model.load_state_dict(best_state)
+
+    def predict(arr):
+        model.eval()
+        preds = []
+        with torch.no_grad():
+            for start in range(0, len(arr), 1024):
+                xb = torch.from_numpy(arr[start:start + 1024]).to(device)
+                probs = torch.softmax(model(xb), dim=1)
+                preds.append(probs.detach().cpu().numpy())
+        return np.vstack(preds)
+
+    checkpoint = {
+        'model_name': training_model_name,
+        'model_state_dict': model.state_dict(),
+        'best_epoch': best_epoch,
+        'best_val_loss': best_val,
+    }
+    return {
+        'model_type': model_type,
+        'checkpoint': checkpoint,
+        'train_raw': predict(X_train_arr),
+        'test_raw': predict(X_test_arr),
+        'history': pd.DataFrame(history),
+    }
+
+
+def _fit_mode4_prediction_model(
+    training_model_name,
+    X_train,
+    X_test,
+    Y_train,
+    result_folder_path,
+    random_state,
+    xgboost_device='auto',
+):
+    training_model_name = _normalize_training_model_name(training_model_name)
+    X_train_model, X_test_model, model_input_scaler_path = _scale_model_input_if_needed(
+        training_model_name, X_train, X_test, result_folder_path
+    )
+    if training_model_name in {'mlp', 'transformer'}:
+        torch_result = _fit_torch_mode4_model(
+            training_model_name,
+            X_train_model,
+            X_test_model,
+            Y_train,
+            random_state,
+        )
+        history_path = f'{result_folder_path}/Table/{training_model_name}_training_history.csv'
+        torch_result['history'].to_csv(history_path, index=False)
+        logger.info(f'{training_model_name} training history saved to {history_path}')
+        return {
+            'model': torch_result['checkpoint'],
+            'model_type': torch_result['model_type'],
+            'train_raw': torch_result['train_raw'],
+            'test_raw': torch_result['test_raw'],
+            'model_input_scaler_path': model_input_scaler_path,
+            'extension': 'pt',
+        }
+
+    model = _make_mode4_sklearn_model(
+        training_model_name,
+        random_state,
+        xgboost_device,
+        len(X_train_model),
+    )
+    predict_input = X_train_model
+    if training_model_name in {'ridge', 'knn'}:
+        predict_input = X_train_model.to_numpy()
+    model.fit(predict_input, Y_train)
+
+    train_predict_input = predict_input
+    test_predict_input = X_test_model
+    if training_model_name in {'ridge', 'knn'}:
+        test_predict_input = X_test_model.to_numpy()
+    return {
+        'model': model,
+        'model_type': 'sklearn',
+        'train_raw': np.asarray(model.predict(train_predict_input)),
+        'test_raw': np.asarray(model.predict(test_predict_input)),
+        'model_input_scaler_path': model_input_scaler_path,
+        'extension': 'pkl',
+    }
+
+
+def _save_mode4_prediction_model(result_folder_path, training_model_name, theta, fit_result):
+    if training_model_name == 'random_forest':
+        path = f'{result_folder_path}/Model/Prediction_model_theta_{theta}.pkl'
+    else:
+        path = (
+            f'{result_folder_path}/Model/'
+            f'Prediction_model_{training_model_name}_theta_{theta}.{fit_result["extension"]}'
+        )
+    if fit_result['model_type'].startswith('torch_'):
+        try:
+            import torch
+        except ModuleNotFoundError as exc:
+            _optional_dependency_error(fit_result['model_type'], exc)
+        torch.save(fit_result['model'], path)
+    else:
+        joblib.dump(fit_result['model'], path)
+    logger.info(f'Prediction model saved to {path}')
+    return path
+
+
 def full_training_pipeline(
     result_folder_path,
     SNP_csv_path=None,
@@ -847,12 +1208,16 @@ def full_training_pipeline(
     pca_components=None,
     random_state=42,
     test_size=0.3,
+    training_model_name='random_forest',
+    xgboost_device='auto',
 ):
     """Train/evaluate user data (Mode 4) or reproduce the paper split (Mode 5)."""
     _prepare_result_directories(result_folder_path)
     reproduce = breed_list_text_path == 'reproduce'
+    training_model_name = 'random_forest' if reproduce else _normalize_training_model_name(training_model_name)
     pca_model_path = None
     scaler_path = None
+    model_input_scaler_path = None
 
     if reproduce:
         y_combined = pd.read_csv(Y_TRAIN_FILE, index_col='dog_id')
@@ -931,28 +1296,37 @@ def full_training_pipeline(
                 pca_components=pca_components,
                 num_training_samples=num_training_samples,
             )
+            X_train = pd.DataFrame(
+                X_train,
+                index=Y_train.index,
+                columns=_pc_columns(X_train.shape[1]),
+            )
             scaler_path = f'{result_folder_path}/Model/scaler.joblib'
             scaler = joblib.load(scaler_path)
             pca = joblib.load(pca_model_path)
             X_test_scaled = pd.DataFrame(
                 scaler.transform(X_test), index=X_test.index, columns=X_test.columns
             )
+            X_test_values = pca.transform(X_test_scaled)
             X_test = pd.DataFrame(
-                pca.transform(X_test_scaled), index=X_test_scaled.index
+                X_test_values,
+                index=X_test_scaled.index,
+                columns=_pc_columns(X_test_values.shape[1]),
             )
 
     x_test_ids = X_test.index.copy()
-    logger.info('Training a prediction model')
-    from sklearn.ensemble import RandomForestRegressor
-    from sklearn.multioutput import MultiOutputRegressor
-
-    regressor = MultiOutputRegressor(
-        RandomForestRegressor(
-            n_estimators=100, random_state=random_state, n_jobs=-1
-        )
+    logger.info(f'Training a {training_model_name} prediction model')
+    fit_result = _fit_mode4_prediction_model(
+        training_model_name,
+        X_train,
+        X_test,
+        Y_train,
+        result_folder_path,
+        random_state,
+        xgboost_device=xgboost_device,
     )
-    regressor.fit(X_train, Y_train)
-    train_raw = regressor.predict(X_train)
+    model_input_scaler_path = fit_result['model_input_scaler_path']
+    train_raw = fit_result['train_raw']
     strict_accuracies, loose_accuracies = helper.pure_threshold_search(
         train_raw, Y_train, mute=True
     )
@@ -960,14 +1334,15 @@ def full_training_pipeline(
     theta = round(helper.best_pure_threshold_v1(
         thresholds, strict_accuracies, loose_accuracies
     ), 2)
-    prediction_model_path = (
-        f'{result_folder_path}/Model/Prediction_model_theta_{theta}.pkl'
+    prediction_model_path = _save_mode4_prediction_model(
+        result_folder_path,
+        training_model_name,
+        theta,
+        fit_result,
     )
-    joblib.dump(regressor, prediction_model_path)
     logger.info(f'Best purity threshold (theta) is {theta}.')
-    logger.info(f'Prediction model saved to {prediction_model_path}')
 
-    raw = regressor.predict(X_test)
+    raw = fit_result['test_raw']
     _save_prediction_outputs(
         result_folder_path, x_test_ids, selected_breeds, raw, theta
     )
@@ -976,6 +1351,8 @@ def full_training_pipeline(
     )
     pd.DataFrame([{
         'n_samples': len(X_test),
+        'training_model_name': training_model_name,
+        'model_type': fit_result['model_type'],
         'pure_threshold': theta,
         'strict_accuracy': strict_accuracy,
         'loose_accuracy': loose_accuracy,
@@ -1005,15 +1382,24 @@ def full_training_pipeline(
         theta,
         pca_model_path=pca_model_path,
         scaler_path=scaler_path,
+        model_input_scaler_path=model_input_scaler_path,
+        model_type=fit_result['model_type'],
+        model_name=training_model_name,
         training_source='user_supplied',
     )
-    analyze.Generate_SNP_importance_score(
-        result_folder_path,
-        prediction_model_path,
-        selected_snps,
-        selected_breeds,
-        pca_model_path,
-    )
+    if training_model_name == 'random_forest':
+        analyze.Generate_SNP_importance_score(
+            result_folder_path,
+            prediction_model_path,
+            selected_snps,
+            selected_breeds,
+            pca_model_path,
+        )
+    else:
+        logger.info(
+            'Skipping SNP importance generation because it is currently implemented '
+            'for random forest Mode 4 models only.'
+        )
     return {
         'prediction_model_path': Path(prediction_model_path),
         'model_metadata_path': metadata_path,
