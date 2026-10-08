@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "default_model": "random_forest",
+  "pca_model_path": "pca_model_WG_100.joblib",
+  "models": {
+    "random_forest": {
+      "display_name": "Random Forest",
+      "model_type": "sklearn",
+      "model_path": "regressor_model0_4-PCA100.pkl",
+      "scaler_path": null,
+      "pure_threshold": 0.70,
+      "strict_accuracy": 0.5866599292572006,
+      "loose_accuracy": 0.9171298635674583,
+      "hardware": "CPU",
+      "train_seconds": 273.02,
+      "inference_seconds": 2.36,
+      "sha256": "bfdafe1b9bd19d68b08e82c551122e274ff8e8c9e8d6a210bc9c6bb2f1f6a2b5"
+    },
+    "xgboost": {
+      "display_name": "XGBoost",
+      "model_type": "sklearn",
+      "model_path": "alternative_models/xgboost-PCA100.joblib",
+      "scaler_path": null,
+      "pure_threshold": 0.69,
+      "strict_accuracy": 0.5932289034866094,
+      "loose_accuracy": 0.9277412834765033,
+      "hardware": "GPU, A100",
+      "train_seconds": 16.32,
+      "inference_seconds": 0.85,
+      "optional_dependency": "xgboost",
+      "sha256": "007b57d6f24607c8be6b7477b945503631858ad727217795f75d447ee4bdbefa"
+    },
+    "ridge": {
+      "display_name": "Ridge",
+      "model_type": "sklearn",
+      "model_path": "alternative_models/ridge-PCA100.joblib",
+      "scaler_path": "alternative_models/ridge_scaler-PCA100.joblib",
+      "pure_threshold": 0.87,
+      "strict_accuracy": 0.4850934815563416,
+      "loose_accuracy": 0.9201616978271855,
+      "hardware": "CPU",
+      "train_seconds": 0.32,
+      "inference_seconds": 0.10,
+      "sha256": "11bbb97f9288274f8639012bb3076a10a299320e8065dea335d141c9056a5796"
+    },
+    "knn": {
+      "display_name": "KNN",
+      "model_type": "sklearn",
+      "model_path": "alternative_models/knn-PCA100.joblib",
+      "scaler_path": "alternative_models/knn_scaler-PCA100.joblib",
+      "pure_threshold": 0.99,
+      "strict_accuracy": 0.393633148054573,
+      "loose_accuracy": 0.9176351692774128,
+      "hardware": "CPU",
+      "train_seconds": 0.01,
+      "inference_seconds": 6.53,
+      "sha256": "2dcda4ce46e1b9fc5311935a5768f3004521225763abaa46e7c0fb3530594d4a"
+    },
+    "extratrees": {
+      "display_name": "ExtraTrees",
+      "model_type": "sklearn",
+      "model_path": "alternative_models/extratrees-PCA100.joblib",
+      "scaler_path": null,
+      "pure_threshold": 0.99,
+      "strict_accuracy": 0.3506821627084386,
+      "loose_accuracy": 0.9302678120262758,
+      "hardware": "CPU",
+      "train_seconds": 6.16,
+      "inference_seconds": 0.31,
+      "sha256": "c2d6f6864b660c889bad1def6be73e7cc2c4c0e3ba6ff7cbac7b2d6769c4f9df"
+    },
+    "mlp": {
+      "display_name": "MLP",
+      "model_type": "torch_mlp",
+      "model_path": "alternative_models/mlp-PCA100.pt",
+      "scaler_path": "alternative_models/mlp_scaler-PCA100.joblib",
+      "pure_threshold": 0.97,
+      "strict_accuracy": 0.36078827690752907,
+      "loose_accuracy": 0.9322890348660939,
+      "hardware": "GPU, A100",
+      "train_seconds": 21.93,
+      "inference_seconds": 0.60,
+      "optional_dependency": "torch",
+      "sha256": "77e2e0d80ae33660a869f5059a57698883509f09695228539a3f9d695ab8d8e4"
+    },
+    "transformer": {
+      "display_name": "Transformer",
+      "model_type": "torch_transformer",
+      "model_path": "alternative_models/transformer-PCA100.pt",
+      "scaler_path": "alternative_models/transformer_scaler-PCA100.joblib",
+      "pure_threshold": 0.97,
+      "strict_accuracy": 0.4714502273875695,
+      "loose_accuracy": 0.9060131379484588,
+      "hardware": "GPU, A100",
+      "train_seconds": 18.00,
+      "inference_seconds": 0.61,
+      "optional_dependency": "torch",
+      "sha256": "72735f2cbba50853931055c8d1e5527aff338e0e9c1c6af823db97f223390e35"
+    }
+  }
+}

@@ -119,14 +119,19 @@ def run_mode(mode, config, *, base_dir=None, configure_logging=True):
     test_size = resolved.get("test_size", 0.3)
     include_unknown = resolved.get("include_unknown", True)
     pure_threshold = resolved.get("pure_threshold")
-    if mode == 1 and pure_threshold is None:
-        pure_threshold = pipeline.DEFAULT_INFERENCE_PURE_THRESHOLD
+    pretrained_model_name = resolved.get("pretrained_model_name")
+    prediction_model_type = resolved.get("prediction_model_type")
 
     if mode == 1:
         _require(resolved, mode, "SNP_csv_path")
         pipeline.pretrained_inference(
             result_folder_path=str(result_path),
             SNP_csv_path=snp_csv_path,
+            pca_model_path=resolved.get("pca_model_path"),
+            prediction_model_path=resolved.get("prediction_model_path"),
+            pretrained_model_name=pretrained_model_name,
+            prediction_model_type=prediction_model_type,
+            scaler_path=resolved.get("scaler_path"),
             pure_threshold=pure_threshold,
         )
     elif mode == 2:

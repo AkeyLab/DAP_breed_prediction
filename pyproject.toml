@@ -28,6 +28,10 @@ figures = [
   "scikit-learn==1.6.1",
   "seaborn>=0.13",
 ]
+alternative-models = [
+  "torch>=2.0",
+  "xgboost>=2.0",
+]
 
 [project.scripts]
 dap-breed-predict = "dap_breed_prediction.cli:main"

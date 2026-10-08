@@ -39,6 +39,8 @@ DAP_breed_prediction/
 │   ├── y_combined_100.csv
 │   └── folder_of_54143_SNPs/            # 38 processed DAP genotype Parquets
 ├── model/
+│   ├── alternative_models/              # Optional pretrained PCA100 predictors
+│   ├── model_registry.json              # Model names, thresholds, metrics, paths
 │   ├── pca_model_WG_100.joblib
 │   ├── regressor_model0_4-PCA100.pkl
 │   └── README.md
@@ -74,6 +76,12 @@ python -m pip install -e ".[tutorial]"
 python -m jupyter lab notebooks/tutorial_all_modes.ipynb
 ```
 
+Install optional backends for XGBoost, MLP, or Transformer Mode 1 inference:
+
+```bash
+python -m pip install -e ".[alternative-models]"
+```
+
 Use `python -m pip install -r requirements.txt` instead if an editable package installation is not wanted.
 
 No GPU or other non-standard hardware is required. Modes 1, 3, and the toy Mode 4 example normally finish in under one minute. DAP-backed Mode 2 and paper-reproduction Mode 5 take longer and depend on available CPU and memory.
@@ -82,13 +90,13 @@ No GPU or other non-standard hardware is required. Modes 1, 3, and the toy Mode 
 
 | Mode | Purpose | Uses DAP reference data? |
 |:---:|---|:---:|
-| 1 | Single-sample prediction with the bundled 100-output PCA/random-forest model | No\* |
+| 1 | Single-sample prediction with the bundled 100-output PCA model and a selected pretrained predictor | No\* |
 | 2 | Retrain on all eligible DAP reference dogs, then predict supplied sample(s) | Yes |
 | 3 | Test a saved model on multiple new samples, with optional labels and metrics | No |
 | 4 | Train and evaluate a new model using only user-provided genotypes and labels | No |
 | 5 | Reproduce the fixed 100-class paper benchmark | Uses bundled fixed PC matrices |
 
-\*The bundled PCA and random-forest models used by Mode 1 were developed from DAP data and are ready for inference. "No" means Mode 1 does not read additional DAP reference data or retrain the models when it runs.
+\*The bundled PCA and prediction models used by Mode 1 were developed from DAP data and are ready for inference. "No" means Mode 1 does not read additional DAP reference data or retrain the models when it runs.
 
 The CLI mode is always explicit; configuration contents never change which mode is selected.
 
@@ -96,10 +104,16 @@ The CLI mode is always explicit; configuration contents never change which mode 
 
 **Designed for:** Predicting one dog's ancestry across the complete 100-output panel without retraining.
 
-Mode 1 loads both bundled paper artifacts:
+Mode 1 loads the bundled paper PCA plus one selected pretrained 100-output predictor.
+The default predictor is Random Forest:
 
 - `model/pca_model_WG_100.joblib`
 - `model/regressor_model0_4-PCA100.pkl`
+
+Other bundled predictors are listed in `model/model_registry.json`: `xgboost`,
+`ridge`, `knn`, `extratrees`, `mlp`, and `transformer`. Ridge, KNN, MLP, and
+Transformer also load their matching PC scaler before prediction. XGBoost,
+MLP, and Transformer require the optional `alternative-models` dependencies.
 
 The input must contain exactly one row, a `dog_id` column, and the complete 54,143-SNP feature set expected by the PCA. Columns may arrive in a different order because the package validates and reorders them by name. Missing or additional SNPs are rejected. Values must already use the training-only chromosome-wise standardization used for the paper model; raw `0/1/2` genotype calls are not valid because the original fitted SNP scalers were not retained.
 
@@ -111,7 +125,12 @@ python main.py -mode 1 -config_path configs/config_mode_1_template.yml
 
 Required config keys: `result_folder_path`, `SNP_csv_path`.
 
-Optional config key: `pure_threshold` (default `0.7`). Mode 1 always uses the bundled PCA and random forest.
+Optional config keys:
+
+- `pretrained_model_name`: registry model key, default `random_forest`.
+- `pure_threshold`: override the selected model's registry threshold.
+- `prediction_model_path`, `prediction_model_type`, and `scaler_path`: use a custom PCA100 predictor instead of a registry model.
+- `pca_model_path`: override the bundled PCA model.
 
 The default example predicts `Australian Shepherd` with a maximum raw score of `0.965`.
 
@@ -279,17 +298,21 @@ REPO_ROOT = Path.cwd()
 
 ### Mode 1
 
-Use the bundled PCA and 100-output random forest to predict one sample with all 54,143 standardized SNPs:
+Use the bundled PCA and selected 100-output predictor to predict one sample with all 54,143 standardized SNPs:
 
 ```python
 mode_1_config = {
     "result_folder_path": "./results/mode_1",
     "SNP_csv_path": "./data/Toy_X_full_54143_single.csv",
-    "pure_threshold": 0.7,
+    "pretrained_model_name": "random_forest",
 }
 
 mode_1_results = run_mode(1, mode_1_config, base_dir=REPO_ROOT)
 ```
+
+Switching to another bundled predictor only changes the model name. For example,
+use `"pretrained_model_name": "xgboost"` after installing
+`.[alternative-models]`.
 
 ### Mode 2
 

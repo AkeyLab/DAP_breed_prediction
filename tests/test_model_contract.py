@@ -40,6 +40,18 @@ class ModelContractTests(unittest.TestCase):
                 ["chr1:test:A:G", "chr2:test:C:T"],
             )
 
+    def test_pretrained_registry_resolves_default_random_forest(self):
+        config = pipeline._resolve_pretrained_model_config()
+
+        self.assertEqual(config["registry_key"], "random_forest")
+        self.assertEqual(config["model_type"], "sklearn")
+        self.assertEqual(config["pure_threshold"], 0.7)
+        self.assertTrue(config["prediction_model_path"].endswith("regressor_model0_4-PCA100.pkl"))
+
+    def test_pretrained_registry_rejects_unknown_model(self):
+        with self.assertRaisesRegex(ValueError, "Unknown pretrained_model_name"):
+            pipeline._resolve_pretrained_model_config(pretrained_model_name="not-a-model")
+
 
 if __name__ == "__main__":
     unittest.main()

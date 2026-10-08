@@ -15,12 +15,14 @@ logger = logging.getLogger(__name__)
 # GLOBAL VARIABLES
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = PROJECT_ROOT / "data"
+MODEL_DIR = PROJECT_ROOT / "model"
 X_TRAIN_FILES = str(DATA_DIR / 'folder_of_54143_SNPs' / 'X_SNP_ch*_pruned_v3_std.parquet')
 Y_TRAIN_FILE = str(DATA_DIR / 'y_combined_100.csv')
 X_TRAIN_PCA_REPRODUCE = str(DATA_DIR / 'X_train_SNP_WG_prune_v3_1_std_pca_100.csv')
 X_TEST_PCA_REPRODUCE = str(DATA_DIR / 'X_test_SNP_WG_prune_v3_1_std_pca_100.csv')
-PRETRAINED_PCA_FILE = str(PROJECT_ROOT / 'model' / 'pca_model_WG_100.joblib')
-PRETRAINED_RF_FILE = str(PROJECT_ROOT / 'model' / 'regressor_model0_4-PCA100.pkl')
+PRETRAINED_PCA_FILE = str(MODEL_DIR / 'pca_model_WG_100.joblib')
+PRETRAINED_RF_FILE = str(MODEL_DIR / 'regressor_model0_4-PCA100.pkl')
+PRETRAINED_MODEL_REGISTRY_FILE = MODEL_DIR / 'model_registry.json'
 PAPER_14_BREEDS = [ 'Australian Shepherd',
                     'Beagle',
                     'Bernese Mountain Dog',
@@ -43,6 +45,205 @@ PCA_TRIGGER_PROPORTION = 0.35
 DEFAULT_INFERENCE_PURE_THRESHOLD = 0.7
 FULL_DAP_SNP_COUNT = 54143
 MODEL_METADATA_FILENAME = 'model_metadata.json'
+
+
+def _normalize_model_name(name):
+    if name is None:
+        return None
+    return str(name).strip().lower().replace('-', '_').replace(' ', '_')
+
+
+def _load_pretrained_model_registry():
+    if not PRETRAINED_MODEL_REGISTRY_FILE.is_file():
+        return {
+            'default_model': 'random_forest',
+            'models': {
+                'random_forest': {
+                    'display_name': 'Random Forest',
+                    'model_type': 'sklearn',
+                    'model_path': Path(PRETRAINED_RF_FILE).name,
+                    'scaler_path': None,
+                    'pure_threshold': DEFAULT_INFERENCE_PURE_THRESHOLD,
+                }
+            },
+        }
+    registry = json.loads(PRETRAINED_MODEL_REGISTRY_FILE.read_text())
+    if 'models' not in registry or not isinstance(registry['models'], dict):
+        raise ValueError(f'Invalid pretrained model registry: {PRETRAINED_MODEL_REGISTRY_FILE}')
+    return registry
+
+
+def list_pretrained_models():
+    """Return bundled pretrained model metadata keyed by model name."""
+    return dict(_load_pretrained_model_registry()['models'])
+
+
+def _resolve_model_path(recorded_path):
+    if recorded_path is None:
+        return None
+    path = Path(recorded_path)
+    if not path.is_absolute():
+        path = MODEL_DIR / path
+    return str(path)
+
+
+def _resolve_pretrained_model_config(
+    pretrained_model_name=None,
+    prediction_model_path=None,
+    prediction_model_type=None,
+    scaler_path=None,
+    pure_threshold=None,
+):
+    registry = _load_pretrained_model_registry()
+    model_name = _normalize_model_name(pretrained_model_name)
+    if prediction_model_path is None:
+        model_name = model_name or registry.get('default_model', 'random_forest')
+        models = registry['models']
+        aliases = {
+            _normalize_model_name(key): key for key in models
+        }
+        if model_name not in aliases:
+            raise ValueError(
+                f'Unknown pretrained_model_name {pretrained_model_name!r}. '
+                f'Available models: {sorted(models)}'
+            )
+        registry_key = aliases[model_name]
+        config = dict(models[registry_key])
+        config['registry_key'] = registry_key
+        config['prediction_model_path'] = _resolve_model_path(config.get('model_path'))
+        config['scaler_path'] = _resolve_model_path(config.get('scaler_path'))
+        if pure_threshold is None:
+            pure_threshold = config.get('pure_threshold')
+    else:
+        config = {
+            'registry_key': model_name or 'custom',
+            'display_name': pretrained_model_name or 'Custom model',
+            'model_type': prediction_model_type or 'sklearn',
+            'prediction_model_path': str(prediction_model_path),
+            'scaler_path': str(scaler_path) if scaler_path is not None else None,
+        }
+    config['model_type'] = prediction_model_type or config.get('model_type', 'sklearn')
+    if scaler_path is not None:
+        config['scaler_path'] = str(scaler_path)
+    config['pure_threshold'] = normalize_pure_threshold(pure_threshold)
+    if config['pure_threshold'] is None:
+        raise ValueError(
+            'pure_threshold must be supplied for custom Mode 1 models, or the '
+            'selected bundled model must define pure_threshold in model_registry.json.'
+        )
+    return config
+
+
+def _optional_dependency_error(model_type, exc):
+    missing = getattr(exc, 'name', None) or str(exc)
+    if missing == 'xgboost':
+        package = 'xgboost'
+    elif missing == 'torch' or model_type.startswith('torch_'):
+        package = 'torch'
+    else:
+        package = missing
+    raise ImportError(
+        f'The selected pretrained model requires optional dependency {package!r}. '
+        'Install it with `python -m pip install -e ".[alternative-models]"` '
+        'or choose `pretrained_model_name: random_forest`.'
+    ) from exc
+
+
+def _make_torch_mlp(torch, n_features, n_outputs):
+    return torch.nn.Sequential(
+        torch.nn.Linear(n_features, 256),
+        torch.nn.LayerNorm(256),
+        torch.nn.GELU(),
+        torch.nn.Dropout(0.20),
+        torch.nn.Linear(256, 128),
+        torch.nn.LayerNorm(128),
+        torch.nn.GELU(),
+        torch.nn.Dropout(0.15),
+        torch.nn.Linear(128, n_outputs),
+    )
+
+
+def _make_torch_transformer(torch, n_features, n_outputs):
+    class PCTransformer(torch.nn.Module):
+        def __init__(self):
+            super().__init__()
+            d_model = 64
+            self.value_embed = torch.nn.Linear(1, d_model)
+            self.pos_embed = torch.nn.Parameter(torch.zeros(1, n_features, d_model))
+            encoder_layer = torch.nn.TransformerEncoderLayer(
+                d_model=d_model,
+                nhead=4,
+                dim_feedforward=128,
+                dropout=0.15,
+                activation='gelu',
+                batch_first=True,
+                norm_first=True,
+            )
+            self.encoder = torch.nn.TransformerEncoder(encoder_layer, num_layers=2)
+            self.head = torch.nn.Sequential(
+                torch.nn.LayerNorm(d_model),
+                torch.nn.Linear(d_model, 128),
+                torch.nn.GELU(),
+                torch.nn.Dropout(0.10),
+                torch.nn.Linear(128, n_outputs),
+            )
+
+        def forward(self, x):
+            x = x.unsqueeze(-1)
+            x = self.value_embed(x) + self.pos_embed
+            x = self.encoder(x)
+            x = x.mean(dim=1)
+            return self.head(x)
+
+    return PCTransformer()
+
+
+def _predict_torch_model(model_path, model_type, X_model, n_outputs):
+    try:
+        import torch
+    except ModuleNotFoundError as exc:
+        _optional_dependency_error(model_type, exc)
+
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    try:
+        checkpoint = torch.load(model_path, map_location=device, weights_only=False)
+    except TypeError:
+        checkpoint = torch.load(model_path, map_location=device)
+    n_features = X_model.shape[1]
+    if model_type == 'torch_mlp':
+        model = _make_torch_mlp(torch, n_features, n_outputs)
+    elif model_type == 'torch_transformer':
+        model = _make_torch_transformer(torch, n_features, n_outputs)
+    else:
+        raise ValueError(f'Unsupported torch pretrained model type: {model_type}')
+    model.load_state_dict(checkpoint['model_state_dict'])
+    model.to(device)
+    model.eval()
+
+    arr = X_model.to_numpy(dtype='float32')
+    preds = []
+    with torch.no_grad():
+        for start in range(0, len(arr), 1024):
+            xb = torch.from_numpy(arr[start:start + 1024]).to(device)
+            logits = model(xb)
+            probs = torch.softmax(logits, dim=1)
+            preds.append(probs.detach().cpu().numpy())
+    return np.vstack(preds)
+
+
+def _predict_pretrained_model(model_path, model_type, X_model, n_outputs):
+    if model_type == 'sklearn':
+        try:
+            model = joblib.load(model_path)
+        except ModuleNotFoundError as exc:
+            _optional_dependency_error(model_type, exc)
+        predict_input = X_model
+        if getattr(model, 'feature_names_in_', None) is None:
+            predict_input = X_model.to_numpy()
+        return np.asarray(model.predict(predict_input))
+    if model_type.startswith('torch_'):
+        return _predict_torch_model(model_path, model_type, X_model, n_outputs)
+    raise ValueError(f'Unsupported pretrained model type: {model_type}')
 
 
 def get_all_breed_classes():
@@ -173,13 +374,26 @@ def pretrained_inference(
     SNP_csv_path,
     pca_model_path=None,
     prediction_model_path=None,
-    pure_threshold=DEFAULT_INFERENCE_PURE_THRESHOLD,
+    pure_threshold=None,
+    pretrained_model_name=None,
+    prediction_model_type=None,
+    scaler_path=None,
 ):
-    """Run the bundled paper PCA and 100-output random forest on full SNP input."""
+    """Run the bundled paper PCA and a selected 100-output model on full SNP input."""
     _prepare_result_directories(result_folder_path)
-    theta = normalize_pure_threshold(pure_threshold)
+    model_config = _resolve_pretrained_model_config(
+        pretrained_model_name=pretrained_model_name,
+        prediction_model_path=prediction_model_path,
+        prediction_model_type=prediction_model_type,
+        scaler_path=scaler_path,
+        pure_threshold=pure_threshold,
+    )
+    theta = model_config['pure_threshold']
     pca_model_path = pca_model_path or PRETRAINED_PCA_FILE
-    prediction_model_path = prediction_model_path or PRETRAINED_RF_FILE
+    prediction_model_path = model_config['prediction_model_path']
+    scaler_path = model_config.get('scaler_path')
+    model_type = model_config.get('model_type', 'sklearn')
+    display_name = model_config.get('display_name', model_config.get('registry_key', 'model'))
 
     X = pd.read_csv(SNP_csv_path, index_col='dog_id')
     X.index = X.index.astype(str)
@@ -200,21 +414,34 @@ def pretrained_inference(
     logger.info(f'Loading the pretrained PCA at {pca_model_path}')
     pcs = pca.transform(X)
 
-    regressor = joblib.load(prediction_model_path)
-    pc_names = list(getattr(
-        regressor,
-        'feature_names_in_',
-        [f'PC{i}' for i in range(1, pcs.shape[1] + 1)],
-    ))
+    pc_names = [f'PC{i}' for i in range(1, pcs.shape[1] + 1)]
     X_pca = pd.DataFrame(pcs, index=X.index, columns=pc_names)
-    logger.info(f'Loading the pretrained random forest at {prediction_model_path}')
-    raw = regressor.predict(X_pca)
+
+    X_model = X_pca
+    if scaler_path is not None:
+        logger.info(f'Loading the pretrained PC scaler at {scaler_path}')
+        scaler = joblib.load(scaler_path)
+        scaler_features = list(getattr(scaler, 'feature_names_in_', X_pca.columns))
+        if list(X_pca.columns) != scaler_features:
+            X_model = X_pca.loc[:, scaler_features]
+        X_model = pd.DataFrame(
+            scaler.transform(X_model),
+            index=X_pca.index,
+            columns=scaler_features,
+        )
+
     class_names = get_all_breed_classes()
+    logger.info(
+        f'Loading pretrained {display_name} ({model_type}) at {prediction_model_path}'
+    )
+    raw = _predict_pretrained_model(
+        prediction_model_path, model_type, X_model, len(class_names)
+    )
     if raw.shape[1] != len(class_names):
         raise ValueError(
             f'Pretrained model produced {raw.shape[1]} outputs; expected {len(class_names)}.'
         )
-    logger.info(f'Using pretrained purity threshold (theta) {theta}.')
+    logger.info(f'Using pretrained {display_name} purity threshold (theta) {theta}.')
     _save_prediction_outputs(result_folder_path, X.index, class_names, raw, theta)
 
 

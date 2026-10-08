@@ -29,6 +29,8 @@ class RunModeTests(unittest.TestCase):
             "random_state": 7,
             "test_size": 0.25,
             "include_unknown": False,
+            "pretrained_model_name": "xgboost",
+            "prediction_model_type": "sklearn",
         }
         config.update(updates)
         return config
@@ -48,9 +50,11 @@ class RunModeTests(unittest.TestCase):
         kwargs = pretrained_inference.call_args.kwargs
         self.assertEqual(kwargs["SNP_csv_path"], str(self.base_dir / "data/snps.csv"))
         self.assertEqual(kwargs["pure_threshold"], 0.8)
+        self.assertEqual(kwargs["pretrained_model_name"], "xgboost")
+        self.assertEqual(kwargs["prediction_model_type"], "sklearn")
 
     @patch("dap_breed_prediction.api.pipeline.pretrained_inference")
-    def test_mode_1_uses_default_threshold(self, pretrained_inference):
+    def test_mode_1_defers_default_threshold_to_registry(self, pretrained_inference):
         run_mode(
             1,
             {
@@ -61,9 +65,7 @@ class RunModeTests(unittest.TestCase):
             configure_logging=False,
         )
 
-        self.assertEqual(
-            pretrained_inference.call_args.kwargs["pure_threshold"], 0.7
-        )
+        self.assertIsNone(pretrained_inference.call_args.kwargs["pure_threshold"])
 
     @patch("dap_breed_prediction.api.pipeline.pretrained_inference")
     def test_mode_1_treats_null_threshold_as_default(self, pretrained_inference):
@@ -78,9 +80,7 @@ class RunModeTests(unittest.TestCase):
             configure_logging=False,
         )
 
-        self.assertEqual(
-            pretrained_inference.call_args.kwargs["pure_threshold"], 0.7
-        )
+        self.assertIsNone(pretrained_inference.call_args.kwargs["pure_threshold"])
 
     @patch("dap_breed_prediction.api.pipeline.inference")
     @patch("dap_breed_prediction.api.pipeline.train")
