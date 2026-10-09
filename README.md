@@ -342,9 +342,15 @@ For a browser-based decision tree, open the
 [web command generator](https://akeylab.github.io/DAP_breed_prediction/). It
 asks whether you want to reproduce the paper benchmark, train a model, run a
 bundled pretrained model, or run a saved model, then generates the YAML and
-command. If GitHub Pages is not enabled for the repository yet, open
-[`docs/command_generator.html`](docs/command_generator.html) locally in a
-browser.
+command.
+
+If that URL is not live yet, enable GitHub Pages manually in the repository:
+`Settings` -> `Pages` -> `Build and deployment` -> `Source: Deploy from a
+branch` -> `Branch: main` -> `/docs`. The repo includes `docs/index.html`, so
+no GitHub Actions workflow is required. For an immediate no-setup preview, use
+the rendered fallback:
+[`raw.githack.com/AkeyLab/DAP_breed_prediction/main/docs/command_generator.html`](https://raw.githack.com/AkeyLab/DAP_breed_prediction/main/docs/command_generator.html).
+You can also open `docs/command_generator.html` locally in a browser.
 
 For the same decision tree in a terminal, run:
 
