@@ -104,6 +104,76 @@ No GPU or other non-standard hardware is required. Modes 1, 3, and the toy Mode 
 
 The CLI mode is always explicit; configuration contents never change which mode is selected.
 
+## Command Generator
+
+The repository includes a small command generator, similar in spirit to the selector on the PyTorch install page: choose the mode and options, and it writes the YAML file plus the command to run it.
+
+Mode introductions:
+[Mode 1](#mode-1-pretrained-single-sample-prediction) |
+[Mode 2](#mode-2-dap-backed-retraining-and-prediction) |
+[Mode 3](#mode-3-saved-model-prediction-or-performance-analysis) |
+[Mode 4](#mode-4-train-on-user-data-only) |
+[Mode 5](#mode-5-reproduce-the-paper-benchmark)
+
+```mermaid
+flowchart TD
+    A{Reproduce the paper benchmark?}
+    A -- Yes --> M5[Mode 5]
+    A -- No --> B{Train or retrain a model?}
+    B -- Yes --> C{Use only your own labeled X/Y data?}
+    C -- Yes --> M4[Mode 4]
+    C -- No --> M2[Mode 2]
+    B -- No --> D{Use a bundled pretrained 100-class model?}
+    D -- Yes --> M1[Mode 1]
+    D -- No --> M3[Mode 3]
+```
+
+For a browser-based decision tree, open the
+[rendered command generator](https://htmlpreview.github.io/?https://github.com/AkeyLab/DAP_breed_prediction/blob/main/docs/command_generator.html).
+It asks whether you want to reproduce the paper benchmark, train a model, run a
+bundled pretrained model, or run a saved model, then generates the YAML and
+command.
+
+For a cleaner project URL, enable GitHub Pages manually in the repository:
+`Settings` -> `Pages` -> `Build and deployment` -> `Source: Deploy from a
+branch` -> `Branch: main` -> `/docs`. After that, the webpage is available at
+`https://akeylab.github.io/DAP_breed_prediction/`. You can also open
+`docs/command_generator.html` locally in a browser.
+
+For the same decision tree in a terminal, run:
+
+```bash
+python scripts/generate_run_command.py --interactive --force
+```
+
+You can also provide choices directly as flags:
+
+```bash
+python scripts/generate_run_command.py \
+  --mode 4 \
+  --config-path configs/generated_mode_4_xgboost.yml \
+  --training-model-name xgboost \
+  --xgboost-device cuda \
+  --result-folder-path ./results/mode_4_xgboost \
+  --force
+```
+
+It prints:
+
+```text
+Wrote YAML config: configs/generated_mode_4_xgboost.yml
+Run this command:
+python main.py -mode 4 -config_path configs/generated_mode_4_xgboost.yml
+```
+
+After package installation, the same generator is available as:
+
+```bash
+dap-breed-generate-command --mode 1 --pretrained-model-name ridge --force
+```
+
+All mode-specific config options are exposed as flags. For example, use `--breed-list-text-path ""` to clear a default breed-list path and train all available classes.
+
 ## Mode 1: Pretrained Single-Sample Prediction
 
 **Designed for:** Predicting one dog's ancestry across the complete 100-output panel without retraining.
@@ -320,71 +390,6 @@ GitHub displays all saved notebook outputs. Set `DAP_FIGURE_DATA` only when over
 - `configs/config_mode_5_template.yml`
 
 Relative paths in a YAML file are resolved from the current working directory. Run commands from the repository root unless absolute paths are used.
-
-## Command Generator
-
-The repository includes a small command generator, similar in spirit to the selector on the PyTorch install page: choose the mode and options, and it writes the YAML file plus the command to run it.
-
-```mermaid
-flowchart TD
-    A{Reproduce the paper benchmark?}
-    A -- Yes --> M5[Mode 5]
-    A -- No --> B{Train or retrain a model?}
-    B -- Yes --> C{Use only your own labeled X/Y data?}
-    C -- Yes --> M4[Mode 4]
-    C -- No --> M2[Mode 2]
-    B -- No --> D{Use a bundled pretrained 100-class model?}
-    D -- Yes --> M1[Mode 1]
-    D -- No --> M3[Mode 3]
-```
-
-For a browser-based decision tree, open the
-[web command generator](https://akeylab.github.io/DAP_breed_prediction/). It
-asks whether you want to reproduce the paper benchmark, train a model, run a
-bundled pretrained model, or run a saved model, then generates the YAML and
-command.
-
-If that URL is not live yet, enable GitHub Pages manually in the repository:
-`Settings` -> `Pages` -> `Build and deployment` -> `Source: Deploy from a
-branch` -> `Branch: main` -> `/docs`. The repo includes `docs/index.html`, so
-no GitHub Actions workflow is required. For an immediate no-setup preview, use
-the rendered fallback:
-[`raw.githack.com/AkeyLab/DAP_breed_prediction/main/docs/command_generator.html`](https://raw.githack.com/AkeyLab/DAP_breed_prediction/main/docs/command_generator.html).
-You can also open `docs/command_generator.html` locally in a browser.
-
-For the same decision tree in a terminal, run:
-
-```bash
-python scripts/generate_run_command.py --interactive --force
-```
-
-You can also provide choices directly as flags:
-
-```bash
-python scripts/generate_run_command.py \
-  --mode 4 \
-  --config-path configs/generated_mode_4_xgboost.yml \
-  --training-model-name xgboost \
-  --xgboost-device cuda \
-  --result-folder-path ./results/mode_4_xgboost \
-  --force
-```
-
-It prints:
-
-```text
-Wrote YAML config: configs/generated_mode_4_xgboost.yml
-Run this command:
-python main.py -mode 4 -config_path configs/generated_mode_4_xgboost.yml
-```
-
-After package installation, the same generator is available as:
-
-```bash
-dap-breed-generate-command --mode 1 --pretrained-model-name ridge --force
-```
-
-All mode-specific config options are exposed as flags. For example, use `--breed-list-text-path ""` to clear a default breed-list path and train all available classes.
 
 ## Python API
 
