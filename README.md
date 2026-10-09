@@ -103,6 +103,12 @@ No GPU or other non-standard hardware is required. Modes 1, 3, and the toy Mode 
 \*The bundled PCA and prediction models used by Mode 1 were developed from DAP data and are ready for inference. "No" means Mode 1 does not read additional DAP reference data or retrain the models when it runs.
 
 The CLI mode is always explicit; configuration contents never change which mode is selected.
+Each mode can also be called from Python with `run_mode()`. All workflow
+parameters accepted by `run_mode()` can be supplied in a YAML file or a config
+mapping; explicit keyword arguments are optional overrides and take precedence
+over matching config keys. Each call returns its configured result directory as
+a `pathlib.Path`; `base_dir` controls relative path resolution and defaults to
+the current working directory.
 
 ## Command Generator
 
@@ -193,8 +199,27 @@ The input must contain exactly one row, a `dog_id` column, and the complete 54,1
 
 The bundled `data/Toy_X_full_54143_single.csv` is a compatible one-row example. It is dog `109622` from the DAP training partition and is provided as an interface test, not as independent validation data.
 
+Run from the CLI:
+
 ```bash
 python main.py -mode 1 -config_path configs/config_mode_1_template.yml
+```
+
+Run from Python:
+
+```python
+from pathlib import Path
+
+from dap_breed_prediction import run_mode
+
+
+mode_1_config = {
+    "result_folder_path": "./results/mode_1",
+    "SNP_csv_path": "./data/Toy_X_full_54143_single.csv",
+    "pretrained_model_name": "random_forest",
+}
+
+mode_1_results = run_mode(1, mode_1_config, base_dir=Path.cwd())
 ```
 
 Required config keys: `result_folder_path`, `SNP_csv_path`.
@@ -206,6 +231,26 @@ Optional config keys:
 - `model_path` or `prediction_model_path`, `prediction_model_type`, and `scaler_path`: use a custom PCA100 predictor instead of a registry model.
 - `pca_model_path`: override the bundled PCA model.
 - `configure_logging`: set to `false` to suppress `process.log` creation and console logging.
+
+Switching to another bundled predictor only changes `pretrained_model_name`.
+For example, use `"xgboost"` after installing `.[alternative-models]`.
+
+You can also select a custom PCA100 predictor directly by path:
+
+```python
+run_mode(
+    1,
+    {
+        "result_folder_path": "./results/mode_1_custom",
+        "SNP_csv_path": "./data/Toy_X_full_54143_single.csv",
+    },
+    base_dir=Path.cwd(),
+    model_path="./model/alternative_models/ridge-PCA100.joblib",
+    scaler_path="./model/alternative_models/ridge_scaler-PCA100.joblib",
+    prediction_model_type="sklearn",
+    pure_threshold=0.87,
+)
+```
 
 The default example predicts `Australian Shepherd` with a maximum raw score of `0.965`.
 
@@ -225,8 +270,29 @@ Mode 2 performs the following operations:
 
 The process log prints the full DAP dimensions, selected sample and class counts, selected class names, requested SNP count, and overlap size. The bundled DAP label table contains 6,572 labeled dogs and 100 outputs; the original metadata filtering stage retained 7,618 dogs before label availability and downstream filtering.
 
+Run from the CLI:
+
 ```bash
 python main.py -mode 2 -config_path configs/config_mode_2_template.yml
+```
+
+Run from Python:
+
+```python
+from pathlib import Path
+
+from dap_breed_prediction import run_mode
+
+
+mode_2_config = {
+    "result_folder_path": "./results/mode_2",
+    "SNP_csv_path": "./data/Toy_X_single.csv",
+    "breed_list_text_path": "./data/paper_14_breed_list.txt",  # Optional
+    "include_unknown": False,
+    "random_state": 42,
+}
+
+mode_2_results = run_mode(2, mode_2_config, base_dir=Path.cwd())
 ```
 
 Required config keys: `result_folder_path`, `SNP_csv_path`.
@@ -257,12 +323,34 @@ Mode 3 does not train a model and does not load DAP reference genotypes. Supply 
 
 When `label_path` is omitted, Mode 3 writes predictions only. When labels are provided, it also calculates strict and loose accuracy and writes per-sample, per-section, and per-class results plus a confusion map.
 
-```bash
-# First create the template model used by this example.
-python main.py -mode 2 -config_path configs/config_mode_2_template.yml
+Run from the CLI after creating the template Mode 2 model:
 
-# Then test that saved model.
+```bash
+python main.py -mode 2 -config_path configs/config_mode_2_template.yml
 python main.py -mode 3 -config_path configs/config_mode_3_template.yml
+```
+
+Run from Python:
+
+```python
+from pathlib import Path
+
+from dap_breed_prediction import run_mode
+
+
+repo_root = Path.cwd()
+run_mode(2, "configs/config_mode_2_template.yml", base_dir=repo_root)
+
+mode_3_config = {
+    "result_folder_path": "./results/mode_3",
+    "SNP_csv_path": "./data/Toy_X_single.csv",
+    "prediction_model_path": "./results/mode_2/Model/Prediction_model_theta_0.62.pkl",
+    "model_metadata_path": "./results/mode_2/Model/model_metadata.json",
+    "pure_threshold": 0.62,
+    "label_path": "./data/Toy_Y_labels.csv",
+}
+
+mode_3_results = run_mode(3, mode_3_config, base_dir=repo_root)
 ```
 
 Required config keys: `result_folder_path`, `SNP_csv_path`, `prediction_model_path` or `model_path`, `pure_threshold`.
@@ -277,8 +365,32 @@ The label CSV must contain `dog_id` and `label`. Use `BreedName` for a pure dog 
 
 Mode 4 reads the supplied X and Y files, creates a train/test split, optionally standardizes and applies PCA, trains the selected prediction model, selects a purity threshold on the training split, and evaluates the held-out split. It saves the fitted model, optional raw-feature scaler/PCA, optional model-input scaler, and `model_metadata.json`, so the resulting model can be used directly by Mode 3.
 
+Run from the CLI:
+
 ```bash
 python main.py -mode 4 -config_path configs/config_mode_4_template.yml
+```
+
+Run from Python:
+
+```python
+from pathlib import Path
+
+from dap_breed_prediction import run_mode
+
+
+mode_4_config = {
+    "result_folder_path": "./results/mode_4",
+    "SNP_csv_path": "./data/Toy_X_snps.csv",
+    "label_path": "./data/Toy_Y_labels.csv",
+    "breed_list_text_path": "./data/Toy_a_short_breed_list.txt",
+    "training_model_name": "random_forest",
+    "pca_components": 0.95,
+    "random_state": 42,
+    "test_size": 0.3,
+}
+
+mode_4_results = run_mode(4, mode_4_config, base_dir=Path.cwd())
 ```
 
 Required config keys: `result_folder_path`, `SNP_csv_path`, `label_path`.
@@ -293,8 +405,25 @@ Optional config keys: `breed_list_text_path`, `training_model_name` (default `ra
 
 Mode 5 trains a new 100-output random forest with random seed `42` from the bundled 100-PC training matrix, chooses the pure-versus-mixed threshold on the training set, and evaluates the fixed test matrix. It does not load the pretrained Mode 1 random forest and does not read the 38 chromosome Parquets.
 
+Run from the CLI:
+
 ```bash
 python main.py -mode 5 -config_path configs/config_mode_5_template.yml
+```
+
+Run from Python:
+
+```python
+from pathlib import Path
+
+from dap_breed_prediction import run_mode
+
+
+mode_5_config = {
+    "result_folder_path": "./results/mode_5",
+}
+
+mode_5_results = run_mode(5, mode_5_config, base_dir=Path.cwd())
 ```
 
 Required config keys: `result_folder_path`.
@@ -370,17 +499,6 @@ python scripts/train_pretrained_models.py \
   --output-dir results/pretrained_model_training_cpu
 ```
 
-## Reproduce The Paper Figures
-
-The [executed figure notebook](notebooks/reproduce_selected_paper_figures.ipynb) contains the calculations and saved outputs for Fig. 2b, Fig. 2c, Fig. 2e, Fig. 3b, Fig. 3c, Fig. 3d, Fig. 3e, Fig. 3f, and Fig. 3h. It uses the archived 10-class small model for Fig. 2c and does not retrain that model. Required inputs are under `Figure_data/` or elsewhere in the repository.
-
-```bash
-python -m pip install -e ".[figures]"
-python -m jupyter lab notebooks/reproduce_selected_paper_figures.ipynb
-```
-
-GitHub displays all saved notebook outputs. Set `DAP_FIGURE_DATA` only when overriding the default `Figure_data/` directory.
-
 ## Configuration Templates
 
 - `configs/config_mode_1_template.yml`
@@ -391,131 +509,16 @@ GitHub displays all saved notebook outputs. Set `DAP_FIGURE_DATA` only when over
 
 Relative paths in a YAML file are resolved from the current working directory. Run commands from the repository root unless absolute paths are used.
 
-## Python API
+## Reproduce The Paper Figures
 
-Every mode is callable from Python or Jupyter with a configuration mapping or YAML path. All workflow parameters accepted by `run_mode()` can be supplied in that config; explicit keyword arguments are optional overrides and take precedence over matching config keys. Run these examples from the repository root:
+The [executed figure notebook](notebooks/reproduce_selected_paper_figures.ipynb) contains the calculations and saved outputs for Fig. 2b, Fig. 2c, Fig. 2e, Fig. 3b, Fig. 3c, Fig. 3d, Fig. 3e, Fig. 3f, and Fig. 3h. It uses the archived 10-class small model for Fig. 2c and does not retrain that model. Required inputs are under `Figure_data/` or elsewhere in the repository.
 
-```python
-from pathlib import Path
-
-from dap_breed_prediction import run_mode
-
-
-REPO_ROOT = Path.cwd()
+```bash
+python -m pip install -e ".[figures]"
+python -m jupyter lab notebooks/reproduce_selected_paper_figures.ipynb
 ```
 
-### Mode 1
-
-Use the bundled PCA and selected 100-output predictor to predict one sample with all 54,143 standardized SNPs:
-
-```python
-mode_1_config = {
-    "result_folder_path": "./results/mode_1",
-    "SNP_csv_path": "./data/Toy_X_full_54143_single.csv",
-    "pretrained_model_name": "random_forest",
-}
-
-mode_1_results = run_mode(1, mode_1_config, base_dir=REPO_ROOT)
-```
-
-Switching to another bundled predictor only changes the model name. For example,
-use `"pretrained_model_name": "xgboost"` after installing
-`.[alternative-models]`.
-
-You can also select a custom PCA100 model directly by path:
-
-```python
-run_mode(
-    1,
-    {
-        "result_folder_path": "./results/mode_1_custom",
-        "SNP_csv_path": "./data/Toy_X_full_54143_single.csv",
-    },
-    base_dir=REPO_ROOT,
-    model_path="./model/alternative_models/ridge-PCA100.joblib",
-    scaler_path="./model/alternative_models/ridge_scaler-PCA100.joblib",
-    prediction_model_type="sklearn",
-    pure_threshold=0.87,
-)
-```
-
-The same values can also be placed directly in the config mapping or YAML file
-as `model_path`, `scaler_path`, `prediction_model_type`, and `pure_threshold`.
-
-### Mode 2
-
-Retrain with all eligible DAP reference dogs using overlapping SNPs and an optional subset of output classes, then predict the supplied sample:
-
-```python
-mode_2_config = {
-    "result_folder_path": "./results/mode_2",
-    "SNP_csv_path": "./data/Toy_X_single.csv",
-    "breed_list_text_path": "./data/paper_14_breed_list.txt",  # Optional
-    "include_unknown": False,
-    "random_state": 42,
-}
-
-mode_2_results = run_mode(2, mode_2_config, base_dir=REPO_ROOT)
-```
-
-Remove `breed_list_text_path` and `include_unknown` to retrain all 100 outputs.
-
-### Mode 3
-
-Apply a saved Mode 2 or Mode 4 model to exact-schema SNP data. Run the Mode 2 example first because these paths use its artifacts:
-
-```python
-mode_3_config = {
-    "result_folder_path": "./results/mode_3",
-    "SNP_csv_path": "./data/Toy_X_single.csv",
-    "prediction_model_path": "./results/mode_2/Model/Prediction_model_theta_0.62.pkl",
-    "model_metadata_path": "./results/mode_2/Model/model_metadata.json",
-    "pure_threshold": 0.62,  # Learned by the bundled Mode 2 example
-    # Optional: include labels to calculate strict and loose accuracy.
-    "label_path": "./data/Toy_Y_labels.csv",
-}
-
-mode_3_results = run_mode(3, mode_3_config, base_dir=REPO_ROOT)
-```
-
-Remove `label_path` for prediction without performance analysis.
-
-### Mode 4
-
-Train and evaluate a model using only user-provided X and Y data:
-
-```python
-mode_4_config = {
-    "result_folder_path": "./results/mode_4",
-    "SNP_csv_path": "./data/Toy_X_snps.csv",
-    "label_path": "./data/Toy_Y_labels.csv",
-    "breed_list_text_path": "./data/Toy_a_short_breed_list.txt",
-    "training_model_name": "random_forest",
-    "pca_components": 0.95,
-    "random_state": 42,
-    "test_size": 0.3,
-}
-
-mode_4_results = run_mode(4, mode_4_config, base_dir=REPO_ROOT)
-```
-
-To train a different Mode 4 backend, change only `training_model_name`; for
-example use `"ridge"` or `"extratrees"` for CPU-only alternatives, or
-`"xgboost"` with `"xgboost_device": "cuda"` when GPU acceleration is available.
-
-### Mode 5
-
-Reproduce the fixed 100-class paper benchmark:
-
-```python
-mode_5_config = {
-    "result_folder_path": "./results/mode_5",
-}
-
-mode_5_results = run_mode(5, mode_5_config, base_dir=REPO_ROOT)
-```
-
-Each call returns its configured result directory as a `pathlib.Path`. `base_dir` controls relative path resolution and defaults to the current working directory.
+GitHub displays all saved notebook outputs. Set `DAP_FIGURE_DATA` only when overriding the default `Figure_data/` directory.
 
 ## Output Files
 
