@@ -338,12 +338,13 @@ flowchart TD
     D -- No --> M3[Mode 3]
 ```
 
-For a browser-based decision tree, open
-[`docs/command_generator.html`](docs/command_generator.html) locally in a
-browser, or serve it through GitHub Pages if Pages is enabled for the repo. It
+For a browser-based decision tree, open the
+[web command generator](https://akeylab.github.io/DAP_breed_prediction/). It
 asks whether you want to reproduce the paper benchmark, train a model, run a
 bundled pretrained model, or run a saved model, then generates the YAML and
-command.
+command. If GitHub Pages is not enabled for the repository yet, open
+[`docs/command_generator.html`](docs/command_generator.html) locally in a
+browser.
 
 For the same decision tree in a terminal, run:
 
