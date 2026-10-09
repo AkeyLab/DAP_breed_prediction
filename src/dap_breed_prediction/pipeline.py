@@ -556,9 +556,12 @@ def train(  result_folder_path,
             pure_threshold = None,
             pure_only = False, 
             include_unknown = True,
+            training_model_name = 'random_forest',
+            xgboost_device = 'auto',
             force_recomputation = False
             ):
     configured_theta = normalize_pure_threshold(pure_threshold)
+    training_model_name = _normalize_training_model_name(training_model_name)
     _prepare_result_directories(result_folder_path)
 
     # An optional class list narrows the 100 DAP outputs used for retraining.
@@ -670,23 +673,37 @@ def train(  result_folder_path,
                 scaler_path = None,
                 pca_model_path = None,
                 num_training_samples = num_training_samples)
+        X_train = pd.DataFrame(
+            X_train,
+            index=Y_train.index,
+            columns=_pc_columns(X_train.shape[1]),
+        )
     
     if prediction_model_path is not None:
         logger.info(f'Loading the prediction model at {prediction_model_path}')
         regressor = joblib.load(prediction_model_path)
         if configured_theta is None:
-            theta_str = prediction_model_path.split("theta_")[1].replace(".pkl", "")
+            theta_str = Path(prediction_model_path).stem.split("theta_")[1]
             theta = float(theta_str)
         else:
             theta = configured_theta
+        model_input_scaler_path = None
+        model_type = 'sklearn'
     else:
-        logger.info(f'Training a prediction model')
-        from sklearn.ensemble import RandomForestRegressor
-        from sklearn.multioutput import MultiOutputRegressor
-        regressor = MultiOutputRegressor(RandomForestRegressor(n_estimators = 100, random_state = random_state, n_jobs = -1))
-        regressor.fit(X_train, Y_train)
+        logger.info(f'Training a {training_model_name} prediction model')
+        fit_result = _fit_mode4_prediction_model(
+            training_model_name,
+            X_train,
+            X_train,
+            Y_train,
+            result_folder_path,
+            random_state,
+            xgboost_device=xgboost_device,
+        )
+        model_input_scaler_path = fit_result['model_input_scaler_path']
+        model_type = fit_result['model_type']
         if configured_theta is None:
-            Y_train_pred = regressor.predict(X_train)
+            Y_train_pred = fit_result['train_raw']
             strict_accuracies, loose_accuracies = helper.pure_threshold_search(Y_train_pred, Y_train, mute = True)
             pure_thresholds = list(np.arange(0, 1.01, 0.01))
             theta = helper.best_pure_threshold_v1(pure_thresholds, strict_accuracies, loose_accuracies)
@@ -695,9 +712,12 @@ def train(  result_folder_path,
         else:
             theta = configured_theta
             logger.info(f'Using configured purity threshold (theta) {theta}.')
-        prediction_model_path = f'{result_folder_path}/Model/Prediction_model_theta_{theta}.pkl'
-        joblib.dump(regressor, prediction_model_path)
-        logger.info(f'Prediction model saved to {result_folder_path}/Model/Prediction_model_theta_{theta}.pkl\n')
+        prediction_model_path = _save_mode4_prediction_model(
+            result_folder_path,
+            training_model_name,
+            theta,
+            fit_result,
+        )
 
     selected_snps = existing
     Path(f'{result_folder_path}/Table/Overlapping_SNPs.txt').write_text(
@@ -719,8 +739,23 @@ def train(  result_folder_path,
         theta,
         pca_model_path=pca_model_path,
         scaler_path=scaler_path,
+        model_input_scaler_path=model_input_scaler_path,
+        model_type=model_type,
+        model_name=training_model_name,
     )
-    analyze.Generate_SNP_importance_score(result_folder_path, prediction_model_path, selected_snps, selected_breeds, pca_model_path)
+    if training_model_name == 'random_forest':
+        analyze.Generate_SNP_importance_score(
+            result_folder_path,
+            prediction_model_path,
+            selected_snps,
+            selected_breeds,
+            pca_model_path,
+        )
+    else:
+        logger.info(
+            'Skipping SNP importance generation because it is currently implemented '
+            'for random forest Mode 2 models only.'
+        )
     return {
         'prediction_model_path': Path(prediction_model_path),
         'model_metadata_path': metadata_path,

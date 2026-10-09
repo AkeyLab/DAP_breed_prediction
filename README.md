@@ -264,7 +264,7 @@ Mode 2 performs the following operations:
 2. Combines all eligible labeled DAP samples rather than preserving the paper train/test split.
 3. Finds the ordered overlap `X'` between SNP columns in the supplied `SNP_csv_path` and the 54,143 DAP SNPs.
 4. Uses all 100 output classes unless `breed_list_text_path` supplies a subset of classes, one per line.
-5. Trains a random forest, plus a scaler and PCA when the feature-to-sample ratio triggers PCA, and selects the purity threshold from the training predictions.
+5. Trains the selected prediction model, plus a scaler and PCA when the feature-to-sample ratio triggers PCA, and selects the purity threshold from the training predictions.
 6. Saves every fitted artifact, the exact SNP/class schema, and the purity threshold.
 7. Predicts the supplied sample row or rows with the newly trained model.
 
@@ -289,6 +289,7 @@ mode_2_config = {
     "SNP_csv_path": "./data/Toy_X_single.csv",
     "breed_list_text_path": "./data/paper_14_breed_list.txt",  # Optional
     "include_unknown": False,
+    "training_model_name": "random_forest",
     "random_state": 42,
 }
 
@@ -297,7 +298,9 @@ mode_2_results = run_mode(2, mode_2_config, base_dir=Path.cwd())
 
 Required config keys: `result_folder_path`, `SNP_csv_path`.
 
-Optional config keys: `breed_list_text_path`, `include_unknown` (default `true`), `pca_components` (default `0.95`), `random_state` (default `42`), `configure_logging` (default `true`). Mode 2 always learns its purity threshold during training; a configured `pure_threshold` is ignored.
+Optional config keys: `breed_list_text_path`, `include_unknown` (default `true`), `training_model_name` (default `random_forest`; options: `random_forest`, `xgboost`, `ridge`, `knn`, `extratrees`, `mlp`, `transformer`), `xgboost_device` (`auto`, `cpu`, or `cuda`; used only when `training_model_name` is `xgboost`), `pca_components` (default `0.95`), `random_state` (default `42`), `configure_logging` (default `true`). Mode 2 always learns its purity threshold during training; a configured `pure_threshold` is ignored.
+
+`ridge`, `knn`, `mlp`, and `transformer` fit an additional model-input scaler after any PCA step. XGBoost and PyTorch-based models require `python -m pip install -e ".[alternative-models]"`.
 
 The bundled 14-class example selects `0.62` in the reference environment. Other SNP or class panels may select a different value; use the threshold and matching model filename recorded in `Model/model_metadata.json` when configuring Mode 3.
 

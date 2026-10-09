@@ -56,6 +56,45 @@ class CommandGeneratorTests(unittest.TestCase):
             "python main.py -mode 4 -config_path configs/xgboost_mode4.yml",
         )
 
+    def test_mode_2_can_select_xgboost(self):
+        parser = command_generator.build_parser()
+        args = parser.parse_args(
+            [
+                "--mode",
+                "2",
+                "--training-model-name",
+                "xgboost",
+                "--xgboost-device",
+                "cuda",
+            ]
+        )
+
+        config = command_generator.build_config(args.mode, command_generator._selected_overrides(args))
+        minimal = command_generator.minimize_config(args.mode, config)
+
+        self.assertEqual(config["training_model_name"], "xgboost")
+        self.assertEqual(minimal["training_model_name"], "xgboost")
+        self.assertEqual(minimal["xgboost_device"], "cuda")
+
+    def test_minimal_config_omits_irrelevant_xgboost_device(self):
+        parser = command_generator.build_parser()
+        args = parser.parse_args(
+            [
+                "--mode",
+                "4",
+                "--training-model-name",
+                "random_forest",
+                "--xgboost-device",
+                "cuda",
+            ]
+        )
+
+        config = command_generator.build_config(args.mode, command_generator._selected_overrides(args))
+        minimal = command_generator.minimize_config(args.mode, config)
+
+        self.assertNotIn("xgboost_device", minimal)
+        self.assertNotIn("training_model_name", minimal)
+
     def test_can_clear_optional_breed_list(self):
         parser = command_generator.build_parser()
         args = parser.parse_args(["--mode", "4", "--breed-list-text-path", ""])

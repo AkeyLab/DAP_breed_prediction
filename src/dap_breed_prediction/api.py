@@ -149,11 +149,11 @@ def run_mode(
         Direct training and data-selection overrides for modes that use those
         settings.
     training_model_name : str, optional
-        Mode 4 training backend. Available values are ``random_forest``,
+        Mode 2 and Mode 4 training backend. Available values are ``random_forest``,
         ``xgboost``, ``ridge``, ``knn``, ``extratrees``, ``mlp``, and
         ``transformer``.
     xgboost_device : {"auto", "cpu", "cuda"}, optional
-        Device setting used when Mode 4 trains XGBoost.
+        Device setting used when Mode 2 or Mode 4 trains XGBoost.
     pure_threshold : float, optional
         Direct pure-versus-mixed threshold override.
 
@@ -262,6 +262,8 @@ def run_mode(
             random_state=random_state,
             pure_threshold=None,
             include_unknown=include_unknown,
+            training_model_name=training_model_name,
+            xgboost_device=xgboost_device,
         )
         pipeline.inference(
             result_folder_path=str(result_path),

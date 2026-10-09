@@ -264,9 +264,10 @@
         SNP_csv_path: "./data/Toy_X_single.csv",
         breed_list_text_path: "./data/paper_14_breed_list.txt",
         include_unknown: false,
+        training_model_name: "random_forest",
+        xgboost_device: "auto",
         pca_components: 0.95,
         random_state: 42,
-        pure_threshold: null,
         configure_logging: true
       },
       3: {
@@ -322,9 +323,10 @@
         ["SNP_csv_path", "Input SNP CSV path", "text"],
         ["breed_list_text_path", "Breed-list text path", "nullableText"],
         ["include_unknown", "Include Unknown class", "checkbox"],
+        ["training_model_name", "Training model", "select", modelChoices],
+        ["xgboost_device", "XGBoost device", "select", ["auto", "cpu", "cuda"]],
         ["pca_components", "PCA components or variance fraction", "number"],
         ["random_state", "Random seed", "integer"],
-        ["pure_threshold", "Accepted but ignored by Mode 2", "nullableNumber"],
         ["configure_logging", "Write logs", "checkbox"]
       ],
       3: [
@@ -362,6 +364,46 @@
       ]
     };
 
+    const impliedDefaults = {
+      1: {
+        pretrained_model_name: "random_forest",
+        configure_logging: true
+      },
+      2: {
+        include_unknown: true,
+        training_model_name: "random_forest",
+        xgboost_device: "auto",
+        pca_components: 0.95,
+        random_state: 42,
+        configure_logging: true
+      },
+      3: {
+        configure_logging: true
+      },
+      4: {
+        training_model_name: "random_forest",
+        xgboost_device: "auto",
+        pca_components: 0.95,
+        random_state: 42,
+        test_size: 0.3,
+        configure_logging: true
+      },
+      5: {
+        random_state: 42,
+        pca_components: 100,
+        test_size: 0.3,
+        configure_logging: true
+      }
+    };
+
+    const requiredKeys = {
+      1: ["result_folder_path", "SNP_csv_path"],
+      2: ["result_folder_path", "SNP_csv_path"],
+      3: ["result_folder_path", "SNP_csv_path", "pure_threshold"],
+      4: ["result_folder_path", "SNP_csv_path", "label_path"],
+      5: ["result_folder_path"]
+    };
+
     let currentMode = null;
     let fieldState = {};
 
@@ -395,6 +437,8 @@
       for (const [key, label, type, choices] of fieldDefs[mode]) {
         const wrapper = document.createElement("div");
         wrapper.className = "field";
+        wrapper.dataset.fieldKey = key;
+        if (key === "xgboost_device") wrapper.dataset.conditional = "xgboost-device";
         const labelNode = document.createElement("label");
         labelNode.htmlFor = `field-${key}`;
         labelNode.textContent = label;
@@ -443,6 +487,12 @@
       }
     }
 
+    function updateFieldVisibility(mode, config) {
+      for (const wrapper of document.querySelectorAll('[data-conditional="xgboost-device"]')) {
+        wrapper.style.display = config.training_model_name === "xgboost" ? "" : "none";
+      }
+    }
+
     function readValue(input) {
       const type = input.dataset.type;
       if (type === "checkbox") return input.checked;
@@ -470,6 +520,34 @@
       return config;
     }
 
+    function minimizeConfig(mode, config) {
+      const implied = impliedDefaults[mode] || {};
+      const required = new Set(requiredKeys[mode] || []);
+      const minimal = {};
+      for (const [key, value] of Object.entries(config)) {
+        if (value === null || value === undefined || value === "") continue;
+        if (key === "xgboost_device" && config.training_model_name !== "xgboost") continue;
+        if ((key === "model_path" || key === "prediction_model_path")) {
+          const other = key === "model_path" ? "prediction_model_path" : "model_path";
+          if (config[other]) continue;
+        }
+        if (
+          !required.has(key) &&
+          key !== "xgboost_device" &&
+          Object.prototype.hasOwnProperty.call(implied, key) &&
+          implied[key] === value
+        ) {
+          continue;
+        }
+        minimal[key] = value;
+      }
+      if (mode === 3 && !minimal.prediction_model_path && !minimal.model_path) {
+        if (config.prediction_model_path) minimal.prediction_model_path = config.prediction_model_path;
+        else if (config.model_path) minimal.model_path = config.model_path;
+      }
+      return minimal;
+    }
+
     function yamlScalar(value) {
       if (value === null || value === undefined || value === "") return "null";
       if (typeof value === "boolean") return value ? "true" : "false";
@@ -477,8 +555,8 @@
       return JSON.stringify(String(value));
     }
 
-    function toYaml(config) {
-      return Object.entries(config).map(([key, value]) => `${key}: ${yamlScalar(value)}`).join("\n") + "\n";
+    function toYaml(mode, config) {
+      return Object.entries(minimizeConfig(mode, config)).map(([key, value]) => `${key}: ${yamlScalar(value)}`).join("\n") + "\n";
     }
 
     function shellQuote(value) {
@@ -497,11 +575,13 @@
       }
       document.getElementById("selected-mode").textContent = `Selected Mode ${mode}`;
       const config = collectConfig();
+      fieldState.values = config;
+      updateFieldVisibility(mode, config);
       const configPath = document.getElementById("config-path");
       if (!configPath.dataset.userEdited) {
         configPath.value = `configs/generated_mode_${mode}.yml`;
       }
-      document.getElementById("yaml-output").value = toYaml(config);
+      document.getElementById("yaml-output").value = toYaml(mode, config);
       document.getElementById("command-output").textContent =
         `python main.py -mode ${mode} -config_path ${shellQuote(configPath.value)}`;
     }

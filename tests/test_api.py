@@ -155,6 +155,8 @@ class RunModeTests(unittest.TestCase):
         self.assertEqual(result, self.base_dir / "results/test")
         train.assert_called_once()
         self.assertIsNone(train.call_args.kwargs["pure_threshold"])
+        self.assertEqual(train.call_args.kwargs["training_model_name"], "ridge")
+        self.assertEqual(train.call_args.kwargs["xgboost_device"], "cpu")
         inference.assert_called_once()
         kwargs = inference.call_args.kwargs
         self.assertEqual(kwargs["pure_threshold"], 0.62)

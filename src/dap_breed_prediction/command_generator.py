@@ -27,9 +27,10 @@ MODE_DEFAULTS = {
         "SNP_csv_path": "./data/Toy_X_single.csv",
         "breed_list_text_path": "./data/paper_14_breed_list.txt",
         "include_unknown": False,
+        "training_model_name": "random_forest",
+        "xgboost_device": "auto",
         "pca_components": 0.95,
         "random_state": 42,
-        "pure_threshold": None,
         "configure_logging": True,
     },
     3: {
@@ -77,6 +78,44 @@ MODEL_CHOICES = (
     "mlp",
     "transformer",
 )
+IMPLIED_DEFAULTS = {
+    1: {
+        "pretrained_model_name": "random_forest",
+        "configure_logging": True,
+    },
+    2: {
+        "include_unknown": True,
+        "training_model_name": "random_forest",
+        "xgboost_device": "auto",
+        "pca_components": 0.95,
+        "random_state": 42,
+        "configure_logging": True,
+    },
+    3: {
+        "configure_logging": True,
+    },
+    4: {
+        "training_model_name": "random_forest",
+        "xgboost_device": "auto",
+        "pca_components": 0.95,
+        "random_state": 42,
+        "test_size": 0.3,
+        "configure_logging": True,
+    },
+    5: {
+        "random_state": 42,
+        "pca_components": 100,
+        "test_size": 0.3,
+        "configure_logging": True,
+    },
+}
+REQUIRED_KEYS = {
+    1: ("result_folder_path", "SNP_csv_path"),
+    2: ("result_folder_path", "SNP_csv_path"),
+    3: ("result_folder_path", "SNP_csv_path", "pure_threshold"),
+    4: ("result_folder_path", "SNP_csv_path", "label_path"),
+    5: ("result_folder_path",),
+}
 
 
 class NullWhenEmpty(argparse.Action):
@@ -222,6 +261,44 @@ def build_config(mode, overrides=None):
     if config.get("prediction_model_path"):
         config["model_path"] = None
     return config
+
+
+def minimize_config(mode, config):
+    """Return the smallest config that preserves the selected generator choices."""
+    if mode not in MODE_DEFAULTS:
+        raise ValueError("mode must be an integer from 1 through 5.")
+    config = dict(config)
+    required = set(REQUIRED_KEYS[mode])
+    implied_defaults = IMPLIED_DEFAULTS[mode]
+    training_model_name = config.get("training_model_name", "random_forest")
+    minimal = {}
+
+    for key in MODE_KEYS[mode]:
+        if key not in config:
+            continue
+        value = config[key]
+        if value is None:
+            continue
+        if key == "xgboost_device" and training_model_name != "xgboost":
+            continue
+        if key in {"model_path", "prediction_model_path"}:
+            other = "prediction_model_path" if key == "model_path" else "model_path"
+            if config.get(other):
+                continue
+        if (
+            key not in required
+            and key != "xgboost_device"
+            and implied_defaults.get(key, object()) == value
+        ):
+            continue
+        minimal[key] = value
+
+    if mode == 3 and "prediction_model_path" not in minimal and "model_path" not in minimal:
+        for key in ("prediction_model_path", "model_path"):
+            if config.get(key):
+                minimal[key] = config[key]
+                break
+    return minimal
 
 
 def default_config_path(mode):
@@ -411,6 +488,26 @@ def _configure_mode_1(config, input_func, output_func):
             config["pure_threshold"] = float(config["pure_threshold"])
 
 
+def _configure_training_model(config, input_func, output_func):
+    config["training_model_name"] = _prompt_choice(
+        "Training model",
+        MODEL_CHOICES,
+        default=config.get("training_model_name", "random_forest"),
+        input_func=input_func,
+        output_func=output_func,
+    )
+    if config["training_model_name"] == "xgboost":
+        config["xgboost_device"] = _prompt_choice(
+            "XGBoost device",
+            ("auto", "cpu", "cuda"),
+            default=config.get("xgboost_device", "auto"),
+            input_func=input_func,
+            output_func=output_func,
+        )
+    else:
+        config["xgboost_device"] = "auto"
+
+
 def _configure_mode_2(config, input_func, output_func):
     config["SNP_csv_path"] = _prompt_text(
         "Input SNP CSV path",
@@ -439,6 +536,7 @@ def _configure_mode_2(config, input_func, output_func):
     else:
         config["breed_list_text_path"] = None
         config["include_unknown"] = True
+    _configure_training_model(config, input_func, output_func)
     config["pca_components"] = _prompt_number(
         "PCA components or variance fraction",
         config["pca_components"],
@@ -526,21 +624,7 @@ def _configure_mode_4(config, input_func, output_func):
         )
     else:
         config["breed_list_text_path"] = None
-    config["training_model_name"] = _prompt_choice(
-        "Training model",
-        MODEL_CHOICES,
-        default=config["training_model_name"],
-        input_func=input_func,
-        output_func=output_func,
-    )
-    if config["training_model_name"] == "xgboost":
-        config["xgboost_device"] = _prompt_choice(
-            "XGBoost device",
-            ("auto", "cpu", "cuda"),
-            default=config["xgboost_device"],
-            input_func=input_func,
-            output_func=output_func,
-        )
+    _configure_training_model(config, input_func, output_func)
     config["pca_components"] = _prompt_number(
         "PCA components or variance fraction",
         config["pca_components"],
@@ -623,7 +707,7 @@ def generate(args):
         overrides = _selected_overrides(args)
         config = build_config(mode, overrides)
         config_path = Path(args.config_path) if args.config_path else default_config_path(mode)
-    written_path = write_config(config, config_path, force=args.force)
+    written_path = write_config(minimize_config(mode, config), config_path, force=args.force)
     command = build_run_command(mode, written_path, args.python, args.entry_script)
     return written_path, command
 
